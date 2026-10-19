@@ -1,0 +1,191 @@
+{
+  "schemaVersion": 1,
+  "description": "Offline mission component catalogue keyed by setId and missionId. Null quantity means not yet verified from the mission diagram; do not treat it as zero.",
+  "sets": [
+    {
+      "setId": "core",
+      "setName": "Core",
+      "missions": [
+        {
+          "missionId": "M0",
+          "number": 0,
+          "name": "Zombicide Life (Tutorial)",
+          "difficulty": "Easy",
+          "durationMinutes": 30,
+          "sourcePage": 36,
+          "tiles": [
+            "1V",
+            "3V"
+          ],
+          "components": [
+            {
+              "id": "spawn_zone",
+              "label": "Spawn Zone tokens",
+              "quantity": 2,
+              "placement": "Match the Spawn Zone symbols on the mission map."
+            },
+            {
+              "id": "exit_zone",
+              "label": "Exit Zone token",
+              "quantity": 1,
+              "placement": "Match the Exit Zone symbol on the mission map."
+            },
+            {
+              "id": "objective",
+              "label": "Objective tokens",
+              "quantity": 2,
+              "placement": "Place on the Objective symbols."
+            },
+            {
+              "id": "epic_weapon_crate",
+              "label": "Epic Weapon Crates",
+              "quantity": 2,
+              "placement": "Place on the Epic Weapon Crate symbols."
+            },
+            {
+              "id": "open_door",
+              "label": "Open Door tokens",
+              "quantity": 0,
+              "placement": "No Open Door tokens are specified for this mission."
+            }
+          ],
+          "startingEnemies": [
+            {
+              "type": "Brute",
+              "quantity": 1
+            },
+            {
+              "type": "Runner",
+              "quantity": 1
+            },
+            {
+              "type": "Walker",
+              "quantity": 2
+            }
+          ]
+        },
+        {
+          "missionId": "M1",
+          "number": 1,
+          "name": "City Blocks",
+          "difficulty": "Medium",
+          "durationMinutes": 45,
+          "sourcePage": 37,
+          "tiles": [
+            "1V",
+            "2V",
+            "3R",
+            "4V",
+            "5R",
+            "6R",
+            "7R",
+            "8V",
+            "9R"
+          ],
+          "components": [
+            {
+              "id": "spawn_zone",
+              "label": "Spawn Zone tokens",
+              "quantity": null,
+              "placement": "Follow Spawn Zone symbols on the mission map; count pending verification."
+            },
+            {
+              "id": "exit_zone",
+              "label": "Exit Zone token",
+              "quantity": 1,
+              "placement": "Follow the Exit Zone symbol on the mission map."
+            },
+            {
+              "id": "objective",
+              "label": "Objective tokens",
+              "quantity": 9,
+              "placement": "Mission diagram shows 9 Objective tokens."
+            },
+            {
+              "id": "epic_weapon_crate",
+              "label": "Epic Weapon Crates",
+              "quantity": 9,
+              "placement": "Mission diagram shows 9 Epic Weapon Crates."
+            },
+            {
+              "id": "open_door",
+              "label": "Open Door tokens",
+              "quantity": 0,
+              "placement": "No Open Door tokens specified in the mission text."
+            }
+          ],
+          "startingEnemies": []
+        },
+        {
+          "missionId": "M2",
+          "number": 2,
+          "name": "Y-Zone",
+          "difficulty": "Hard",
+          "durationMinutes": 60,
+          "sourcePage": 38,
+          "tiles": [
+            "1V",
+            "2V",
+            "3V",
+            "4R",
+            "5V",
+            "6R",
+            "7V",
+            "8V",
+            "9R"
+          ],
+          "components": [
+            {
+              "id": "spawn_zone",
+              "label": "Spawn Zone tokens",
+              "quantity": null,
+              "placement": "Follow Spawn Zone symbols on the mission map; count pending verification."
+            },
+            {
+              "id": "exit_zone",
+              "label": "Exit Zone token",
+              "quantity": 1,
+              "placement": "Follow the Exit Zone symbol on the mission map."
+            },
+            {
+              "id": "objective",
+              "label": "Objective tokens",
+              "quantity": 9,
+              "placement": "Mission diagram shows 9 Objective tokens."
+            },
+            {
+              "id": "epic_weapon_crate",
+              "label": "Epic Weapon Crates",
+              "quantity": 9,
+              "placement": "Mission diagram shows 9 Epic Weapon Crates."
+            },
+            {
+              "id": "open_door",
+              "label": "Open Door tokens",
+              "quantity": 0,
+              "placement": "No Open Door tokens specified in the mission text."
+            }
+          ],
+          "startingEnemies": []
+        }
+      ]
+    }
+  ],
+  "plannedSets": [
+    {
+      "setId": "washington",
+      "setName": "Washington Z.C.",
+      "status": "awaiting user-provided mission source"
+    },
+    {
+      "setId": "fort",
+      "setName": "Fort Hendrix",
+      "status": "awaiting user-provided mission source"
+    },
+    {
+      "setId": "digital",
+      "setName": "Digital",
+      "status": "schema ready; mission import not implemented"
+    }
+  ]
+}
