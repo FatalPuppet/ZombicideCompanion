@@ -1,1 +1,20 @@
 com.fatalpuppet.zombicide
+drawable first_player_token
+drawable tile_1r_up
+drawable tile_1v_up
+drawable tile_2r_up
+drawable tile_2v_up
+drawable tile_3r_up
+drawable tile_3v_up
+drawable tile_4r_up
+drawable tile_4v_up
+drawable tile_5r_up
+drawable tile_5v_up
+drawable tile_6r_up
+drawable tile_6v_up
+drawable tile_7r_up
+drawable tile_7v_up
+drawable tile_8r_up
+drawable tile_8v_up
+drawable tile_9r_up
+drawable tile_9v_up
