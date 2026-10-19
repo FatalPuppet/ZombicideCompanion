@@ -1,0 +1,8 @@
+com.fatalpuppet.zombicide.app-pngs-0 /Users/mirkocalvi/Downloads/ZombicideCompanion/app/build/generated/res/pngs/debug
+com.fatalpuppet.zombicide.app-updated_navigation_xml-1 /Users/mirkocalvi/Downloads/ZombicideCompanion/app/build/generated/updated_navigation_xml/debug
+com.fatalpuppet.zombicide.app-packageDebugResources-2 /Users/mirkocalvi/Downloads/ZombicideCompanion/app/build/intermediates/incremental/debug/packageDebugResources/merged.dir
+com.fatalpuppet.zombicide.app-packageDebugResources-3 /Users/mirkocalvi/Downloads/ZombicideCompanion/app/build/intermediates/incremental/debug/packageDebugResources/stripped.dir
+com.fatalpuppet.zombicide.app-debug-4 /Users/mirkocalvi/Downloads/ZombicideCompanion/app/build/intermediates/merged_res/debug/mergeDebugResources
+com.fatalpuppet.zombicide.app-debug-5 /Users/mirkocalvi/Downloads/ZombicideCompanion/app/src/debug/res
+com.fatalpuppet.zombicide.app-main-6 /Users/mirkocalvi/Downloads/ZombicideCompanion/app/src/main/res
+gradleHome-0 /Users/mirkocalvi/.gradle
