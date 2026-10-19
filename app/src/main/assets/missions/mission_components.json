@@ -73,14 +73,14 @@
           "sourcePage": 37,
           "tiles": [
             "1V",
-            "2V",
-            "3R",
-            "4V",
-            "5R",
-            "6R",
             "7R",
+            "3R",
+            "5R",
+            "9R",
+            "6R",
             "8V",
-            "9R"
+            "2V",
+            "4V"
           ],
           "components": [
             {
@@ -124,15 +124,15 @@
           "durationMinutes": 60,
           "sourcePage": 38,
           "tiles": [
-            "1V",
-            "2V",
-            "3V",
-            "4R",
-            "5V",
-            "6R",
             "7V",
+            "5V",
+            "2V",
+            "9R",
+            "6R",
+            "4R",
+            "1V",
             "8V",
-            "9R"
+            "3V"
           ],
           "components": [
             {
