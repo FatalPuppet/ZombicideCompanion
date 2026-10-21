@@ -2,6 +2,22 @@
 
 All notable changes to **Zombicide Companion** are documented here. The project is in early development; version labels refer to incremental source patches, not verified production releases.
 
+## [1.0.0] - 2026-10-21
+
+### Added
+- Core missions completed.
+- Mission map with token position has been added.
+- Added proper image for zombies, survivor selection, and player dashboard.
+
+### Updated
+- Rules reference in Mission in Progress pane has complete rules, searchable by text.
+- Possible to mark a mission as complete.
+- Starting Spawn and Red Spawn tokens are now shown as separate entities.
+
+### Validation
+- Integrity and source have been checked and reported passing.
+- Build tested in both Virtual and Physical devices (Samsung S25 Ultra).
+
 ## [0.7.3] - 2026-10-19
 
 ### Added

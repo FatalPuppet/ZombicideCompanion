@@ -1,10 +1,12 @@
 package com.fatalpuppet.zombicide
 
 import android.os.Bundle
+import android.graphics.BitmapFactory
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -27,7 +29,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -45,15 +47,66 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.window.Dialog
 import androidx.compose.foundation.Image
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.fatalpuppet.zombicide.data.RuleEntry
 import com.fatalpuppet.zombicide.data.RuleRepository
 import com.fatalpuppet.zombicide.data.RuleSection
+
+@Composable
+private fun DrawableImage(
+    name: String,
+    contentDescription: String?,
+    modifier: Modifier = Modifier,
+    contentScale: ContentScale = ContentScale.Fit
+) {
+    val context = LocalContext.current
+    val drawableId = remember(name) { context.resources.getIdentifier(name.substringBeforeLast('.'), "drawable", context.packageName) }
+    if (drawableId != 0) {
+        Image(painter = painterResource(drawableId), contentDescription = contentDescription, modifier = modifier, contentScale = contentScale)
+    } else {
+        Box(modifier = modifier, contentAlignment = Alignment.Center) {
+            Text("Image not found: $name", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.error)
+        }
+    }
+}
+
+@Composable
+private fun AssetImage(
+    path: String,
+    contentDescription: String?,
+    modifier: Modifier = Modifier,
+    contentScale: ContentScale = ContentScale.Fit
+) {
+    val context = LocalContext.current
+    val bitmap = remember(path) {
+        // Asset paths are relative to app/src/main/assets. Keep tokens plural-only.
+        // Also try the filename at the assets root to tolerate older tile exports.
+        val candidates = when {
+            path.startsWith("tokens/") -> listOf(path)
+            path.startsWith("maps/") -> listOf(path, path.removePrefix("maps/"))
+            path.startsWith("tiles/") -> listOf(path, path.removePrefix("tiles/"))
+            else -> listOf(path)
+        }
+        candidates.firstNotNullOfOrNull { candidate ->
+            runCatching { context.assets.open(candidate).use { BitmapFactory.decodeStream(it) } }.getOrNull()
+        }
+    }
+    if (bitmap != null) {
+        Image(bitmap = bitmap.asImageBitmap(), contentDescription = contentDescription, modifier = modifier, contentScale = contentScale)
+    } else {
+        Box(modifier = modifier, contentAlignment = Alignment.Center) {
+            Text("Image not found: $path", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.error)
+        }
+    }
+}
 
 private enum class AppScreen {
     HOME, RULES, RULE_SOURCE, MISSION_SELECT, MISSION_OVERVIEW, TILES, PLAYER_SELECTION, PLAYER_DASHBOARD, FIRST_PLAYER, MAP_LAYOUT, GAMEPLAY, RULEBOOK
@@ -68,7 +121,7 @@ private data class RuleSourceOption(
 
 private val ruleSources = listOf(
     RuleSourceOption("core", "Core", "Zombicide 2nd Edition core missions", true),
-    RuleSourceOption("washington", "Washington Z.C.", "Expansion missions", false),
+    RuleSourceOption("washington", "Washington Z.C.", "10 expansion missions", true),
     RuleSourceOption("fort", "Fort Hendrix", "Expansion missions", false),
     RuleSourceOption("digital", "Digital", "Use a digital mission source", false)
 )
@@ -88,12 +141,14 @@ class MainActivity : ComponentActivity() {
 private fun CompanionApp(sections: List<RuleSection>, missionTiles: List<String>) {
     var screen by remember { mutableStateOf(AppScreen.HOME) }
     var query by remember { mutableStateOf("") }
+    var rulesReturnScreen by remember { mutableStateOf(AppScreen.HOME) }
     var selectedEntry by remember { mutableStateOf<Pair<RuleSection, RuleEntry>?>(null) }
     var selectedSource by remember { mutableStateOf("core") }
     var selectedMissionId by remember { mutableStateOf("M0") }
     val context = LocalContext.current
-    val selectedMissionTiles = remember(selectedMissionId) { loadMissionTiles(context, "core", selectedMissionId) }
+    val selectedMissionTiles = remember(selectedSource, selectedMissionId) { loadMissionTiles(context, selectedSource, selectedMissionId) }
     var preparedItems by remember { mutableStateOf(setOf<String>()) }
+    var completedMissions by remember { mutableStateOf(setOf<String>()) }
 
     MaterialTheme {
         Scaffold(
@@ -115,14 +170,14 @@ private fun CompanionApp(sections: List<RuleSection>, missionTiles: List<String>
                     )
                     screen == AppScreen.HOME -> HomeScreen(
                         onStart = { screen = AppScreen.RULE_SOURCE },
-                        onRules = { query = ""; screen = AppScreen.RULES }
+                        onRules = { query = ""; rulesReturnScreen = AppScreen.HOME; screen = AppScreen.RULES }
                     )
                     screen == AppScreen.RULES -> RulesScreen(
                         sections = sections,
                         query = query,
                         onQueryChange = { query = it },
                         onSelectEntry = { selectedEntry = it },
-                        onBack = { screen = AppScreen.HOME }
+                        onBack = { screen = rulesReturnScreen }
                     )
                     screen == AppScreen.RULE_SOURCE -> SourceSelectionScreen(
                         selectedSource = selectedSource,
@@ -132,6 +187,7 @@ private fun CompanionApp(sections: List<RuleSection>, missionTiles: List<String>
                     )
                     screen == AppScreen.MISSION_SELECT -> MissionSelectionScreen(
                         selectedSource = selectedSource,
+                        completedMissions = completedMissions,
                         onBack = { screen = AppScreen.RULE_SOURCE },
                         onSelectMission = { missionId ->
                             selectedMissionId = missionId
@@ -141,11 +197,13 @@ private fun CompanionApp(sections: List<RuleSection>, missionTiles: List<String>
                     )
                     screen == AppScreen.MISSION_OVERVIEW -> MissionOverviewScreen(
                         missionId = selectedMissionId,
+                        sourceId = selectedSource,
                         onBack = { screen = AppScreen.MISSION_SELECT },
                         onBegin = { screen = AppScreen.TILES }
                     )
                     screen == AppScreen.TILES -> TileSetupScreen(
                         missionId = selectedMissionId,
+                        sourceId = selectedSource,
                         tiles = selectedMissionTiles,
                         preparedItems = preparedItems,
                         onTogglePrepared = { itemId ->
@@ -169,11 +227,17 @@ private fun CompanionApp(sections: List<RuleSection>, missionTiles: List<String>
                     screen == AppScreen.MAP_LAYOUT -> MapLayoutScreen(
                         tiles = selectedMissionTiles,
                         missionId = selectedMissionId,
+                        sourceId = selectedSource,
                         onBack = { screen = AppScreen.FIRST_PLAYER },
                         onContinue = { screen = AppScreen.GAMEPLAY }
                     )
                     screen == AppScreen.GAMEPLAY -> GameplayScreen(
-                        onRuleSet = { screen = AppScreen.RULEBOOK },
+                        missionId = selectedMissionId,
+                        isComplete = selectedMissionId in completedMissions,
+                        onToggleComplete = {
+                            completedMissions = if (selectedMissionId in completedMissions) completedMissions - selectedMissionId else completedMissions + selectedMissionId
+                        },
+                        onRuleSet = { query = ""; rulesReturnScreen = AppScreen.GAMEPLAY; screen = AppScreen.RULES },
                         onHome = { screen = AppScreen.HOME }
                     )
                     screen == AppScreen.RULEBOOK -> RulebookScreen(
@@ -231,7 +295,25 @@ private fun SourceSelectionScreen(
                         else MaterialTheme.colorScheme.surfaceVariant
                     )
                 ) {
-                    Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Row(Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                        val context = LocalContext.current
+                        val logoName = when (source.id) {
+                            "core" -> "logo_zombicide"
+                            "fort" -> "logo_fort_hendrix"
+                            "washington" -> "logo_washington_zc"
+                            else -> ""
+                        }
+                        val logoId = remember(source.id) {
+                            if (logoName.isBlank()) 0 else context.resources.getIdentifier(logoName, "drawable", context.packageName)
+                        }
+                        if (logoId != 0) {
+                            Image(
+                                painter = painterResource(logoId),
+                                contentDescription = "${source.title} logo",
+                                contentScale = ContentScale.Fit,
+                                modifier = Modifier.width(88.dp).height(64.dp).padding(end = 12.dp)
+                            )
+                        }
                         Column(Modifier.weight(1f)) {
                             Text(source.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
                             Spacer(Modifier.height(3.dp))
@@ -249,10 +331,23 @@ private fun SourceSelectionScreen(
 @Composable
 private fun MissionSelectionScreen(
     selectedSource: String,
+    completedMissions: Set<String>,
     onBack: () -> Unit,
     onSelectMission: (String) -> Unit
 ) {
     val source = ruleSources.first { it.id == selectedSource }
+    val washingtonMissions = listOf(
+        Triple("M1", "Facing the Impossible", "Medium · 45 minutes"),
+        Triple("M2", "Leave No One Behind", "Medium · 60 minutes"),
+        Triple("M3", "DEFCON 5: Fade Out", "Medium · 45 minutes"),
+        Triple("M4", "The War Zone", "Medium · 60 minutes"),
+        Triple("M5", "DEFCON 4: Double Take", "Medium · 90 minutes"),
+        Triple("M6", "DEFCON 3: Round House", "Medium · 90 minutes"),
+        Triple("M7", "Get the Key Card", "Hard · 45 minutes"),
+        Triple("M8", "Restore the Elevator", "Hard · 60 minutes"),
+        Triple("M9", "DEFCON 2: Fast Pace", "Very Hard · 45 minutes"),
+        Triple("M10", "DEFCON 1: Cocked Pistol", "Very Hard · 60 minutes")
+    )
     val coreMissions = listOf(
         Triple("M0", "Zombicide Life", "Easy · 30 minutes"),
         Triple("M1", "City Blocks", "Medium · 45 minutes"),
@@ -286,16 +381,22 @@ private fun MissionSelectionScreen(
         Spacer(Modifier.height(6.dp))
         Text("Source: ${source.title}", style = MaterialTheme.typography.labelLarge)
         Spacer(Modifier.height(16.dp))
-        if (selectedSource == "core") {
+        if (selectedSource == "core" || selectedSource == "washington") {
+            val missionsToShow = if (selectedSource == "washington") washingtonMissions else coreMissions
             LazyColumn(
                 modifier = Modifier.weight(1f),
                 contentPadding = PaddingValues(bottom = 12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(coreMissions) { mission ->
+                items(missionsToShow) { mission ->
                     Card(Modifier.fillMaxWidth().clickable { onSelectMission(mission.first) }) {
                         Column(Modifier.padding(16.dp)) {
-                            Text("${mission.first} · ${mission.second}", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                                Text("${mission.first} · ${mission.second}", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                                if (mission.first in completedMissions) {
+                                    Text("✓", color = Color(0xFF2E7D32), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.ExtraBold)
+                                }
+                            }
                             Spacer(Modifier.height(6.dp))
                             Text("Difficulty: ${mission.third.substringBefore(" · ")}", style = MaterialTheme.typography.bodyMedium)
                             Text("Estimated time: ${mission.third.substringAfter(" · ")}", style = MaterialTheme.typography.bodyMedium)
@@ -310,7 +411,7 @@ private fun MissionSelectionScreen(
                     Spacer(Modifier.height(6.dp))
                     Text(
                         when (selectedSource) {
-                            "washington" -> "Washington Z.C. mission data will be added when its digital rulebook is provided."
+                            "washington" -> ""
                             "fort" -> "Fort Hendrix mission data will be added when its digital rulebook is provided."
                             else -> "Digital mission import is planned for a later step."
                         },
@@ -357,6 +458,21 @@ private data class MissionInfo(
     val permanentNoiseTokensPerHighlightedZone: Int = 0
 )
 
+private data class WashingtonMissionInfo(val name: String, val difficulty: String, val duration: String, val tiles: List<String>, val objective: String)
+
+private val washingtonMissionInfo = mapOf(
+    "M1" to WashingtonMissionInfo("Facing the Impossible", "Medium", "45 minutes", listOf("2V", "7R", "4R", "5R", "8R", "3R"), "Open all doors in the diner and take all Objective cards."),
+    "M2" to WashingtonMissionInfo("Leave No One Behind", "Medium", "60 minutes", listOf("2R", "1R", "8R", "6R", "7V", "4V"), "Save as many people as possible. Take all Objective cards."),
+    "M3" to WashingtonMissionInfo("DEFCON 5: Fade Out", "Medium", "45 minutes", listOf("6V", "8V", "3V", "4V", "1V", "2V"), "Explore the area and take the Objective cards, except the card revealed automatically at 7 PM."),
+    "M4" to WashingtonMissionInfo("The War Zone", "Medium", "60 minutes", listOf("10V", "11V", "9R", "1R", "6R", "3R"), "Turn the projector off, then reach the Exit with all Survivors."),
+    "M5" to WashingtonMissionInfo("DEFCON 4: Double Take", "Medium", "90 minutes", listOf("13V", "12R", "11R", "10R", "15R", "14R"), "Explore the White House wing to find a suitable shelter."),
+    "M6" to WashingtonMissionInfo("DEFCON 3: Round House", "Medium", "90 minutes", listOf("11R", "15R", "10R", "14R", "12R", "13R"), "Find the bunker’s entrance."),
+    "M7" to WashingtonMissionInfo("Get the Key Card", "Hard", "45 minutes", listOf("15V", "11R", "10R", "13V", "14V", "12R"), "Find the bunker’s keycard. An Abomination wears it around its neck; do not use Molotovs to obtain it."),
+    "M8" to WashingtonMissionInfo("Restore the Elevator", "Hard", "60 minutes", listOf("12V", "11R", "13V", "14V", "15V"), "Find and switch on the power generator."),
+    "M9" to WashingtonMissionInfo("DEFCON 2: Fast Pace", "Very Hard", "45 minutes", listOf("12R", "10R", "11R", "13R", "14R", "15R"), "Open the presidential bunker by reaching its entrance and reading the Objective card."),
+    "M10" to WashingtonMissionInfo("DEFCON 1: Cocked Pistol", "Very Hard", "60 minutes", listOf("10V", "11V", "7R", "2V", "1R", "8V"), "Fight for your new life. Find a way to exit the area.")
+)
+
 private val coreMissionInfo = mapOf(
     "M0" to MissionInfo("M0", "Zombicide Life", "Easy", "30 minutes", 36, listOf("1V", "3V"),
         "The tutorial mission introduces the basic setup and objective flow.",
@@ -386,11 +502,11 @@ private val coreMissionInfo = mapOf(
         "The Survivors raid a Z-Mart for food and must escape with their supplies in the cars.",
         listOf("Gather 6 food cards (Canned Food, Rice, or Water).", "Reach the Exit with all Survivors inside the cars, carrying any stashed food. If this can no longer be achieved, the game is lost."),
         listOf("Cars can be driven. The Muscle Car contains an Epic Weapon Crate; the Police Car can be searched for a weapon.", "Survivors can spend 1 Action to stash food cards in a car in their Zone.", "Each Objective grants 5 Adrenaline Points. Each Epic Weapon Crate grants a random available Epic Weapon."), 6, 7, policeCarCount = 1, muscleCarCount = 1),
-    "M7" to MissionInfo("M7", "Grindhouse", "Hard", "45 minutes", 43, listOf("3V", "4V", "6V", "8V"),
+    "M7" to MissionInfo("M7", "Grindhouse", "Hard", "45 minutes", 43, listOf("6V", "4V", "3V", "8V"),
         "An accident at the nuclear power plant left technicians quarantined in a hospital wing. Prevent the infected from escaping.",
         listOf("Secure the buildings by gathering all Zombie Spawn tokens on the Starting Spawn Zone.", "Throw a Molotov at the Starting Spawn Zone to lock the infected in for good. The game is lost whenever a Zombie starts its Activation in a highlighted Zone."),
         listOf("Place 3 permanent Noise tokens in each highlighted Zone; they are not removed during the End Phase.", "At the end of Setup, spawn Zombies in both buildings on tiles 4V and 8V as if their doors had just been opened.", "A Survivor standing in an empty Spawn Zone may spend 1 Action to neutralize it by moving its Zombie Spawn token to the Starting Spawn Zone.", "Each Objective grants 5 Adrenaline Points. Each Epic Weapon Crate grants a random available Epic Weapon."), 4, 4, permanentNoiseTokensPerHighlightedZone = 3),
-    "M8" to MissionInfo("M8", "Zombie Police", "Hard", "30 minutes", 44, listOf("3V", "4V", "5V", "6R", "8V", "9R"),
+    "M8" to MissionInfo("M8", "Zombie Police", "Hard", "30 minutes", 44, listOf("3V", "4V", "6R", "9R", "8V", "5V"),
         "The Survivors discover a memo pointing to a bunker near the police station, but its remote-controlled entrance is locked and the district is overrun.",
         listOf("Take the Blue and Green Objectives to find the remote controls.", "Reach the Exit with all Survivors; the Exit Zone is usable only when no Zombies are in it."),
         listOf("Place the Blue and Green Objectives in the indicated Zones. Each Objective grants 5 Adrenaline Points.", "The building with the Exit cannot be opened until both colored Objectives have been taken.", "Cars can be driven. The Muscle Car contains an Epic Weapon Crate. When searching the Police Car, draw until a weapon is found; Aaahh!! interrupts the Search.", "Each Epic Weapon Crate grants a random available Epic Weapon."), 2, 7, true, policeCarCount = 1, muscleCarCount = 1),
@@ -398,15 +514,15 @@ private val coreMissionInfo = mapOf(
         "The Survivors must cross the narrow Ditch and return to their shelter before the weather and the zombie horde catch them.",
         listOf("Reach the Exit with all Survivors. Survivors may escape at the end of their Turn if the Exit Zone has no Zombies and no Abominations remain on the board."),
         listOf("The team starts with 2 Companions distributed among the Survivors. Place an Abomination in the indicated Zone; it does not move until there is an open path to the Survivors.", "Each Objective grants 5 Adrenaline Points. Each Epic Weapon Crate grants a random available Epic Weapon.", "The two Muscle Cars cannot be driven. Each contains an Epic Weapon; place an Epic Weapon Crate on each."), 4, 6, muscleCarCount = 2, nonDrivableMuscleCar = true, abominationCount = 1),
-    "M12" to MissionInfo("M12", "Car Crash", "Medium", "60 minutes", 48, listOf("1R", "2R", "6R", "7V", "8R", "9V"),
+    "M12" to MissionInfo("M12", "Car Crash", "Medium", "60 minutes", 48, listOf("9V", "1R", "8R", "6R", "7V", "2R"),
         "Six injured Survivors are trapped in the wrecked car. Find first aid kits and turn them into Companions before the zombies reach them.",
         listOf("Turn all 6 injured Survivors in the Zone on tile 8R into Companions by delivering 6 first aid kits represented by Red Objectives.", "The game is lost whenever a Zombie activates in the injured Survivors' Zone."),
         listOf("Note the open doors on tile 8R. Place 6 unused Survivor miniatures in the indicated injured-Survivor Zone; set their ID Cards aside. They cannot act or carry Equipment, but count as Noise tokens.", "Each Red Objective grants 5 Adrenaline Points and a first aid kit. Place it on the Survivor's Dashboard; it takes no inventory slot and can be traded. Spend 1 Action to drop a Red Objective in the injured-Survivor Zone to turn one injured Survivor into a Companion.", "The crashed car cannot be driven or searched. Each Epic Weapon Crate grants a random available Epic Weapon."), 6, 6, crashedCarCount = 1, extraSurvivorCount = 6),
-    "M13" to MissionInfo("M13", "Burning Streets", "Medium", "45 minutes", 49, listOf("1R", "2V", "3V", "4V", "6R", "7V"),
+    "M13" to MissionInfo("M13", "Burning Streets", "Medium", "45 minutes", 49, listOf("7V", "4V", "1R", "6R", "2V", "3V"),
         "A massive zombie herd is approaching the shelter. Burn the side accesses, then block the road and torch the cars to divert the horde.",
         listOf("Throw a Molotov at each Red Spawn Zone to move its Red Zombie Spawn token to the Starting Spawn Zone.", "Drive both Cars to the highlighted parking Zone. Both must be parked there to win."),
         listOf("The Blue Objective is on tile 2V and the Green Objective is on tile 3V. Each grants 5 Adrenaline Points and a Molotov; treat the token as a Molotov card when taken.", "Throwing a Molotov at a Red Spawn Zone moves that Spawn token to the Starting Spawn Zone.", "Cars can be driven. The Muscle Car contains an Epic Weapon Crate. When searching the Police Car, draw until a weapon is found; Aaahh!! interrupts the Search.", "Each Epic Weapon Crate grants a random available Epic Weapon."), 3, 7, blueObjectiveCount = 1, greenObjectiveCount = 1, policeCarCount = 1, muscleCarCount = 1),
-    "M14" to MissionInfo("M14", "Breakfast at Jesse's", "Medium", "45 minutes", 50, listOf("2V", "4R", "6R", "7V", "8R", "9V"),
+    "M14" to MissionInfo("M14", "Breakfast at Jesse's", "Medium", "45 minutes", 50, listOf("9V", "4R", "6R", "2V", "8R", "7V"),
         "Jesse's Diner is sealed behind reinforced doors, with people trapped inside. Rally the Companions and bring everyone to the Exit.",
         listOf("Rally all Companions and gather all Survivors on the Exit Zone, with no Zombies in it.", "The game is lost if a Survivor, including one on tile 4R, is eliminated."),
         listOf("Note the closed door between tiles 7V and 8R, the Green Objective on tile 2V, and the Green Door on tile 4R. Place 6 unused Survivor miniatures on the Exit Zone as Companions to rally.", "The door between tiles 7V and 8R makes the two parts of that building count as separate buildings for Zombie spawning only.", "Doors in the building spanning tiles 4R and 9V cannot be opened, except for the Green Door. The Green Door cannot be opened until the Green Objective has been taken.", "Each Objective grants 5 Adrenaline Points. Each Epic Weapon Crate grants a random available Epic Weapon."), 5, 6, greenObjectiveCount = 1, greenDoorCount = 1, extraSurvivorCount = 6),
@@ -414,7 +530,7 @@ private val coreMissionInfo = mapOf(
         "The Survivors find a promising shelter with reinforced doors, though several doors have been broken by an Abomination.",
         listOf("Barricade the broken doors using Objective tokens.", "Secure the shelter by eliminating all Zombies remaining in the building."),
         listOf("Note the doors on tiles 2V, 3V, and 4V. Place an Abomination in the indicated Zone.", "The four broken doors cannot be opened by Zombies or standard door-opening rules; Survivors may open them without door-opening Equipment. Zombies ignore them when moving and open them immediately if they pass through.", "Each Objective grants 5 Adrenaline Points. Spend 1 Action to place an Objective token from a Survivor's Dashboard into an empty Zone with a broken door to barricade it permanently.", "Each Epic Weapon Crate grants a random available Epic Weapon."), 4, 4, abominationCount = 1, brokenDoorCount = 4),
-    "M17" to MissionInfo("M17", "The Blight", "Hard", "60 minutes", 53, listOf("1R", "2R", "3R", "4V", "5V", "6R", "7V", "8R", "9R"),
+    "M17" to MissionInfo("M17", "The Blight", "Hard", "60 minutes", 53, listOf("7V", "5V", "4V", "2R", "9R", "6R", "8R", "1R", "3R"),
         "Cleanse the Blight: clear every Zombie from the building spanning tiles 7V, 5V, and 4V after opening it.",
         listOf("Win as soon as there are no Zombies in the Blight building, once it has been opened."),
         listOf("The Blight's doors can only be opened by Survivors at Orange Danger Level or higher.", "Each Objective grants 5 Adrenaline Points. Each Epic Weapon Crate grants a random available Epic Weapon."), 9, 9),
@@ -465,36 +581,37 @@ private val coreMissionInfo = mapOf(
 )
 
 @Composable
-private fun MissionOverviewScreen(missionId: String, onBack: () -> Unit, onBegin: () -> Unit) {
+private fun MissionOverviewScreen(missionId: String, sourceId: String, onBack: () -> Unit, onBegin: () -> Unit) {
     val mission = coreMissionInfo[missionId] ?: coreMissionInfo.getValue("M0")
+    val washington = washingtonMissionInfo[missionId]
     Column(Modifier.fillMaxSize().padding(16.dp)) {
         LazyColumn(modifier = Modifier.weight(1f), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             item {
-                Text("MISSION ${mission.id}", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+                Text("MISSION $missionId", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
                 Spacer(Modifier.height(4.dp))
-                Text(mission.name, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-                Text("${mission.difficulty} · About ${mission.duration}", style = MaterialTheme.typography.titleSmall)
+                Text(if (sourceId == "washington") washington?.name ?: mission.name else mission.name, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                Text(if (sourceId == "washington") "${washington?.difficulty ?: ""} · About ${washington?.duration ?: ""}" else "${mission.difficulty} · About ${mission.duration}", style = MaterialTheme.typography.titleSmall)
             }
             item {
                 Text("Mission briefing", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(4.dp))
-                Text(mission.briefing, style = MaterialTheme.typography.bodyLarge)
+                Text(if (sourceId == "washington") "Washington Z.C. campaign mission. Follow the expansion rulebook for the complete briefing and special rules." else mission.briefing, style = MaterialTheme.typography.bodyLarge)
             }
             item {
-                Divider()
+                HorizontalDivider()
                 Text("Objectives", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                mission.objectives.forEach { BulletText(it) }
+                (if (sourceId == "washington") listOf(washington?.objective ?: "Follow the objective described in the Washington Z.C. rulebook.") else mission.objectives).forEach { BulletText(it) }
             }
             item {
-                Divider()
+                HorizontalDivider()
                 Text("Special rules", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                mission.specialRules.forEach { BulletText(it) }
+                (if (sourceId == "washington") listOf("Use the Washington Z.C. expansion rules and mission map.") else mission.specialRules).forEach { BulletText(it) }
             }
             item {
-                Divider()
+                HorizontalDivider()
                 Text("Tiles required", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                Text(mission.tiles.joinToString(", "), style = MaterialTheme.typography.bodyLarge)
-                Text("Source: Core rulebook, mission page ${mission.page}.", style = MaterialTheme.typography.labelSmall)
+                Text((if (sourceId == "washington") washington?.tiles else mission.tiles)?.joinToString(", ") ?: "", style = MaterialTheme.typography.bodyLarge)
+                Text(if (sourceId == "washington") "Source: Washington Z.C. rulebook, mission ${missionId.removePrefix("M")}." else "Source: Core rulebook, mission page ${mission.page}.", style = MaterialTheme.typography.labelSmall)
             }
         }
         BottomNavigationRow(onBack = onBack, primaryLabel = "Begin", onPrimary = onBegin, primaryIsLarge = true)
@@ -518,15 +635,32 @@ private val m0Components = listOf(
 @Composable
 private fun TileSetupScreen(
     missionId: String,
+    sourceId: String,
     tiles: List<String>,
     preparedItems: Set<String>,
     onTogglePrepared: (String) -> Unit,
     onBack: () -> Unit,
     onSetup: () -> Unit
 ) {
+    val context = LocalContext.current
     val mission = coreMissionInfo[missionId] ?: coreMissionInfo.getValue("M0")
-    val checklistComponents = buildList {
-        add(MissionComponent("Red Spawn Zone tokens", "As shown", "Use the Red Spawn Zone symbols shown on the mission map."))
+    val checklistComponents = if (sourceId == "washington") listOf(
+        MissionComponent("Tokens and components", "See mission map", "Use the Washington Z.C. rulebook for exact quantities and special setup instructions.")
+    ) else buildList {
+        add(MissionComponent(
+            "Red Spawn Zone tokens",
+            when (missionId) {
+                "M0" -> "1"
+                "M1" -> "2"
+                "M16" -> "3"
+                in listOf("M2", "M3", "M4", "M5", "M6", "M7", "M8", "M9", "M10", "M11", "M12", "M13", "M14", "M15", "M17", "M18", "M19", "M20", "M21", "M22", "M23", "M24", "M25") -> "2"
+                else -> "As shown"
+            },
+            "Place on the normal Red Spawn Zone symbols shown on the mission map."
+        ))
+        if (missionId in listOf("M0", "M1", "M2", "M3", "M4", "M5", "M6", "M7", "M8", "M9", "M10", "M11", "M12", "M13", "M14", "M15", "M16", "M17", "M18", "M19", "M20", "M21", "M22", "M23", "M24", "M25")) {
+            add(MissionComponent("Starting Spawn Zone token", "1", "Place on the mission map's Starting Spawn Zone."))
+        }
         if (mission.blueSpawnCount > 0) add(MissionComponent("Blue Spawn Zone token", mission.blueSpawnCount.toString(), "Keep aside until the Blue Spawn Zone becomes active, as specified by the mission."))
         if (mission.greenSpawnCount > 0) add(MissionComponent("Green Spawn Zone token", mission.greenSpawnCount.toString(), "Use the Green Spawn Zone symbol shown on the mission map."))
         if (missionId in listOf("M0", "M1", "M2", "M5", "M6", "M8", "M11", "M14", "M21", "M22")) {
@@ -566,10 +700,12 @@ private fun TileSetupScreen(
     val checkedCount = requiredIds.count { it in preparedItems }
     val allPrepared = requiredIds.isNotEmpty() && requiredIds.all { it in preparedItems }
 
+    fun requiredTileAsset(tile: String): String = "tiles/t${tile.lowercase()}.png"
+
     Column(Modifier.fillMaxSize().padding(16.dp)) {
         Text("Tiles & layout", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(6.dp))
-        Text("Mission ${mission.id} · ${mission.name}", style = MaterialTheme.typography.labelLarge)
+        Text(if (sourceId == "washington") "Mission $missionId · ${washingtonMissionInfo[missionId]?.name ?: "Washington Z.C."}" else "Mission ${mission.id} · ${mission.name}", style = MaterialTheme.typography.labelLarge)
         Spacer(Modifier.height(12.dp))
         LazyColumn(
             modifier = Modifier.weight(1f),
@@ -581,16 +717,45 @@ private fun TileSetupScreen(
                     Column(Modifier.padding(16.dp)) {
                         Text("Tiles required", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                         Spacer(Modifier.height(10.dp))
-                        tiles.forEachIndexed { index, tile ->
-                            if (index > 0) Divider(Modifier.padding(vertical = 4.dp))
-                            val itemId = "tile-${tile.lowercase()}"
-                            ChecklistRow(
-                                label = tile,
-                                detail = "Tile ${index + 1} · rotation will be shown in the map setup",
-                                checked = itemId in preparedItems,
-                                onCheckedChange = { onTogglePrepared(itemId) },
-                                prominent = true
-                            )
+                        tiles.chunked(3).forEachIndexed { rowIndex, tileRow ->
+                            if (rowIndex > 0) HorizontalDivider(Modifier.padding(vertical = 4.dp))
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                tileRow.forEach { tile ->
+                                    val itemId = "tile-${tile.lowercase()}"
+                                    val tileImage = requiredTileAsset(tile)
+                                    val tileChecked = itemId in preparedItems
+                                    Column(
+                                        modifier = Modifier.weight(1f)
+                                            .clickable { onTogglePrepared(itemId) }
+                                            .padding(vertical = 4.dp, horizontal = 2.dp),
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        if (true) {
+                                            Box(modifier = Modifier.width(64.dp).height(64.dp), contentAlignment = Alignment.Center) {
+                                                AssetImage(
+                                                    path = tileImage,
+                                                    contentDescription = "Tile $tile",
+                                                    modifier = Modifier.fillMaxSize(),
+                                                    contentScale = ContentScale.Fit
+                                                )
+                                                if (tileChecked) {
+                                                    Text(
+                                                        "✓",
+                                                        color = Color(0xFF16803C),
+                                                        style = MaterialTheme.typography.headlineMedium,
+                                                        fontWeight = FontWeight.ExtraBold,
+                                                        modifier = Modifier.align(Alignment.TopEnd)
+                                                    )
+                                                }
+                                            }
+                                        } else {
+                                            // Temporary fallback until each tile illustration is added to drawable-nodpi.
+                                            Text(if (tileChecked) "✓ $tile" else tile, color = if (tileChecked) Color(0xFF16803C) else MaterialTheme.colorScheme.onSurface, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
+                                        }
+                                    }
+                                }
+                                repeat(3 - tileRow.size) { Spacer(Modifier.weight(1f)) }
+                            }
                         }
                         Spacer(Modifier.height(8.dp))
                         Text("Source: Core rulebook, mission page ${mission.page}.", style = MaterialTheme.typography.labelSmall)
@@ -602,11 +767,11 @@ private fun TileSetupScreen(
                     Column(Modifier.padding(16.dp)) {
                         Text("Tokens & components required", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                         Spacer(Modifier.height(4.dp))
-                        Text("Tick each item as you prepare it.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("Tap each token or component image as you prepare it.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         Spacer(Modifier.height(8.dp))
                         Spacer(Modifier.height(8.dp))
                         checklistComponents.forEachIndexed { index, component ->
-                            if (index > 0) Divider(Modifier.padding(vertical = 4.dp))
+                            if (index > 0) HorizontalDivider(Modifier.padding(vertical = 4.dp))
                             val itemId = "component-${component.name}"
                             ChecklistRow(
                                 label = component.name,
@@ -623,11 +788,11 @@ private fun TileSetupScreen(
                 Text("Starting Zombies", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                 Card(Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(horizontal = 12.dp, vertical = 4.dp)) {
-                        ChecklistRow("Brute", "1 miniature", "1", "enemy-brute" in preparedItems, { onTogglePrepared("enemy-brute") })
-                        Divider(Modifier.padding(vertical = 2.dp))
-                        ChecklistRow("Runner", "1 miniature", "1", "enemy-runner" in preparedItems, { onTogglePrepared("enemy-runner") })
-                        Divider(Modifier.padding(vertical = 2.dp))
-                        ChecklistRow("Walkers", "2 miniatures", "2", "enemy-walkers" in preparedItems, { onTogglePrepared("enemy-walkers") })
+                        ChecklistRow("Brute", "1 miniature", "1", "enemy-brute" in preparedItems, { onTogglePrepared("enemy-brute") }, drawableName = "brute")
+                        HorizontalDivider(Modifier.padding(vertical = 2.dp))
+                        ChecklistRow("Runner", "1 miniature", "1", "enemy-runner" in preparedItems, { onTogglePrepared("enemy-runner") }, drawableName = "runner")
+                        HorizontalDivider(Modifier.padding(vertical = 2.dp))
+                        ChecklistRow("Walkers", "2 miniatures", "2", "enemy-walkers" in preparedItems, { onTogglePrepared("enemy-walkers") }, drawableName = "walker")
                     }
                 }
                 Text("Place the Zombies in the Zones indicated by the mission map.", style = MaterialTheme.typography.bodyMedium)
@@ -650,67 +815,327 @@ private fun TileSetupScreen(
 }
 
 @Composable
-private fun MapLayoutScreen(tiles: List<String>, missionId: String, onBack: () -> Unit, onContinue: () -> Unit) {
+private fun MapLayoutScreen(tiles: List<String>, missionId: String, sourceId: String, onBack: () -> Unit, onContinue: () -> Unit) {
+    val context = LocalContext.current
     val tileCount = tiles.size
+    val washingtonCustom = sourceId == "washington" && missionId in listOf("M4", "M5", "M7")
     val columns = when {
-        missionId == "M4" -> 2 // Drive-by Shooting uses a vertical 3-row by 2-column layout.
+        sourceId == "washington" && missionId in listOf("M2", "M3", "M6") -> 2
+        sourceId == "washington" && missionId in listOf("M5", "M7") -> 2
+        sourceId == "washington" && missionId == "M4" -> 3
+        sourceId == "washington" && missionId == "M1" -> 3
+        sourceId == "washington" && missionId == "M8" -> 3
+        missionId in listOf("M4", "M6", "M8", "M12", "M13", "M14", "M18", "M19", "M20", "M21", "M25") -> 2 // These missions use vertical 3-row by 2-column layouts.
+        missionId in listOf("M7", "M9", "M10", "M11", "M16") -> 2 // These missions use 2-column layouts.
         else -> when (tileCount) {
             2 -> 2
             3 -> 3
-            4 -> 2
+            4 -> 3
             6 -> 3
-            8 -> 4
+            8 -> 3
             9 -> 3
             else -> if (tileCount <= 3) tileCount.coerceAtLeast(1) else 3
         }
     }
     val rows = tiles.chunked(columns)
     var enlargedTile by remember { mutableStateOf<String?>(null) }
+    var showMissionMap by remember { mutableStateOf(false) }
+
+    fun tileRotationDegrees(tile: String): Float {
+        if (sourceId == "washington") return 0f
+        // Mission-specific rotations are entered explicitly from the user's instructions.
+        return when (missionId to tile.uppercase()) {
+            "M0" to "1V" -> 90f
+            "M0" to "3V" -> 180f
+            "M1" to "1V" -> 90f
+            "M1" to "7R" -> 90f
+            "M1" to "5R" -> 90f
+            "M1" to "6R" -> 90f
+            "M1" to "8V" -> 270f
+            "M1" to "4V" -> 180f
+            // M2: Y-Zone
+            "M2" to "7V" -> 180f
+            "M2" to "5V" -> 270f
+            "M2" to "2V" -> 90f
+            "M2" to "9R" -> 180f
+            "M2" to "6R" -> 90f
+            "M2" to "1V" -> 270f
+            "M2" to "8V" -> 270f
+            "M2" to "3V" -> 270f
+            // M5: Big W
+            "M5" to "8V" -> 90f
+            "M5" to "1V" -> 90f
+            "M5" to "7R" -> 180f
+            "M5" to "5R" -> 90f
+            "M5" to "2V" -> 270f
+            "M5" to "3V" -> 270f
+            "M5" to "6R" -> 180f
+            // M6: The Escape
+            "M6" to "5R" -> 90f
+            "M6" to "9R" -> 180f
+            "M6" to "4V" -> 90f
+            // M3: The 24hrs Race of Zombicity
+            "M3" to "2V" -> 180f
+            "M3" to "8V" -> 90f
+            "M3" to "9V" -> 180f
+            "M3" to "7R" -> 270f
+            "M3" to "3R" -> 180f
+            "M3" to "6R" -> 270f
+            "M3" to "1V" -> 270f
+            "M3" to "5V" -> 90f
+            "M3" to "4V" -> 180f
+            // M4: Drive-by Shooting
+            "M4" to "5R" -> 90f
+            "M4" to "7R" -> 270f
+            "M4" to "4V" -> 180f
+            "M4" to "3V" -> 180f
+            "M4" to "6V" -> 180f
+            "M4" to "8V" -> 180f
+            // M7: Grindhouse
+            "M7" to "6V" -> 270f
+            "M7" to "4V" -> 270f
+            "M7" to "3V" -> 180f
+            "M7" to "8V" -> 270f
+            // M8: Zombie Police
+            "M8" to "3V" -> 0f
+            "M8" to "4V" -> 0f
+            "M8" to "6R" -> 270f
+            "M8" to "9R" -> 0f
+            "M8" to "8V" -> 270f
+            "M8" to "5V" -> 90f
+            // M9: Might Makes Right
+            "M9" to "4V" -> 270f
+            "M9" to "2V" -> 180f
+            "M9" to "9R" -> 270f
+            "M9" to "3V" -> 180f
+            // M10: Small Town
+            "M10" to "2V" -> 90f
+            "M10" to "1R" -> 270f
+            "M10" to "7R" -> 90f
+            "M10" to "5R" -> 180f
+            // M12: Car Crash
+            "M12" to "9V" -> 180f
+            "M12" to "1R" -> 90f
+            "M12" to "8R" -> 90f
+            "M12" to "6R" -> 90f
+            "M12" to "2R" -> 90f
+            // M13: Burning Streets
+            "M13" to "7V" -> 90f
+            "M13" to "1R" -> 180f
+            "M13" to "6R" -> 270f
+            "M13" to "3V" -> 180f
+            // M14: Breakfast at Jesse's
+            "M14" to "9V" -> 180f
+            "M14" to "6R" -> 270f
+            "M14" to "2V" -> 270f
+            "M14" to "8R" -> 270f
+            "M14" to "7V" -> 180f
+            // M15: United We Stand
+            "M15" to "1R" -> 270f
+            "M15" to "2R" -> 90f
+            "M15" to "8V" -> 180f
+            "M15" to "4R" -> 90f
+            "M15" to "9R" -> 180f
+            "M15" to "3V" -> 90f
+            "M15" to "7R" -> 180f
+            "M15" to "6R" -> 90f
+            // M16: Pale Shelter
+            "M16" to "4V" -> 90f
+            "M16" to "3V" -> 90f
+            "M16" to "1V" -> 90f
+            // M17: The Blight
+            "M17" to "7V" -> 180f
+            "M17" to "5V" -> 270f
+            "M17" to "4V" -> 270f
+            "M17" to "9R" -> 90f
+            "M17" to "6R" -> 90f
+            "M17" to "8R" -> 180f
+            "M17" to "1R" -> 270f
+            "M17" to "3R" -> 180f
+            // M18: The End of the Road
+            "M18" to "4R" -> 270f
+            "M18" to "1R" -> 90f
+            "M18" to "2R" -> 180f
+            "M18" to "6V" -> 90f
+            "M18" to "3V" -> 270f
+            // M19: Best Friends Forever
+            "M19" to "6V" -> 180f
+            "M19" to "9V" -> 270f
+            "M19" to "7R" -> 180f
+            "M19" to "2R" -> 270f
+            "M19" to "4R" -> 180f
+            // M20: The Zombiefest
+            "M20" to "1R" -> 180f
+            "M20" to "8R" -> 90f
+            "M20" to "7R" -> 270f
+            "M20" to "6V" -> 90f
+            "M20" to "5V" -> 90f
+            // M21: Heavy-duty
+            "M21" to "8R" -> 90f
+            "M21" to "3V" -> 90f
+            "M21" to "9R" -> 90f
+            "M21" to "7R" -> 270f
+            "M21" to "1V" -> 270f
+            // M22: Crank It Up to 11
+            "M22" to "5V" -> 180f
+            "M22" to "4R" -> 90f
+            "M22" to "9V" -> 270f
+            "M22" to "3R" -> 270f
+            "M22" to "1R" -> 180f
+            // M23: Mercy Street
+            "M23" to "9V" -> 180f
+            "M23" to "2R" -> 90f
+            "M23" to "3R" -> 180f
+            // M24: Ram Speed
+            "M24" to "8R" -> 270f
+            "M24" to "7R" -> 270f
+            "M24" to "1R" -> 270f
+            "M24" to "5R" -> 270f
+            // M25: Ned's Moloturbo
+            "M25" to "2R" -> 90f
+            "M25" to "7R" -> 90f
+            "M25" to "9R" -> 90f
+            "M25" to "8R" -> 270f
+            // M11: The Ditch
+            "M11" to "4R" -> 270f
+            "M11" to "2R" -> 270f
+            "M11" to "9V" -> 90f
+            "M11" to "7V" -> 270f
+            else -> 0f
+        }
+    }
+
+    fun rotationLabel(degrees: Float): String = when (degrees.toInt()) {
+        90 -> "↻ 90° RIGHT"
+        180 -> "↻ 180° RIGHT"
+        270 -> "↺ 90° LEFT"
+        else -> "↑ UP · 0°"
+    }
+
+    fun tileAsset(tile: String): String {
+        val normalized = tile.lowercase()
+        val number = normalized.filter { it.isDigit() }
+        val face = normalized.firstOrNull { it == 'r' || it == 'v' }?.toString() ?: "r"
+        return "tiles/tile_${number}${face}_up.png"
+    }
 
     Column(Modifier.fillMaxSize().padding(16.dp)) {
         Text("Mission map setup", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(4.dp))
-        Text("${missionId} · ${coreMissionInfo[missionId]?.name ?: "Zombicide Life"}", style = MaterialTheme.typography.labelLarge)
-        Spacer(Modifier.height(8.dp))
-        Text(if (enlargedTile == null) "Tile placement template" else "Enlarged tile: $enlargedTile", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
         Text(
-            if (enlargedTile == null)
-                "Tap any tile to enlarge it for easier token placement. Tap the enlarged tile to return to the full map."
-            else
-                "Tap the tile to return to the full map. Tile images and verified token positions will be added later.",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            "${missionId} · ${if (sourceId == "washington") washingtonMissionInfo[missionId]?.name ?: "Washington Z.C." else coreMissionInfo[missionId]?.name ?: "Zombicide Life"}  ⓘ",
+            style = MaterialTheme.typography.labelLarge,
+            modifier = Modifier.clickable { showMissionMap = true }
         )
+        Spacer(Modifier.height(8.dp))
+        if (enlargedTile == null) {
+            Text("Tile placement template", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Text(
+                "Tap any tile to enlarge it. Tile artwork is shown upright; mission rotations are applied to the map layout.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
         Spacer(Modifier.height(12.dp))
 
         if (enlargedTile != null) {
-            Card(
-                modifier = Modifier.fillMaxWidth().aspectRatio(1f)
-                    .border(1.dp, MaterialTheme.colorScheme.outline)
-                    .clickable { enlargedTile = null },
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+            val tile = enlargedTile!!
+            val drawable = tileAsset(tile)
+            Box(
+                modifier = Modifier.fillMaxWidth().weight(1f),
+                contentAlignment = Alignment.Center
             ) {
-                Column(
-                    modifier = Modifier.fillMaxSize().padding(8.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(enlargedTile!!, style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold)
-                    Spacer(Modifier.height(8.dp))
-                    Text("Rotation: —", style = MaterialTheme.typography.titleMedium)
-                    Text("Tokens: —", style = MaterialTheme.typography.bodyLarge)
-                    Spacer(Modifier.height(8.dp))
-                    Text("Tap to return to map", style = MaterialTheme.typography.labelMedium)
+                if (true) {
+                    AssetImage(
+                        path = drawable,
+                        contentDescription = "Tile $tile, upright",
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier.fillMaxWidth().aspectRatio(1f)
+                            .graphicsLayer { rotationZ = tileRotationDegrees(tile) }
+                            .clickable { enlargedTile = null }
+                    )
+                    Text(
+                        "${rotationLabel(tileRotationDegrees(tile))} · $tile",
+                        modifier = Modifier.align(Alignment.TopCenter).padding(6.dp),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = Color.White
+                    )
+                } else {
+                    Column(
+                        modifier = Modifier.fillMaxWidth().aspectRatio(1f)
+                            .border(1.dp, MaterialTheme.colorScheme.error)
+                            .clickable { enlargedTile = null },
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(tile, style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold)
+                        Text("↑ UP", style = MaterialTheme.typography.titleMedium)
+                        Text("IMAGE NOT FOUND", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.error)
+                    }
                 }
             }
         } else {
             Column(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().weight(1f),
                 verticalArrangement = Arrangement.spacedBy(0.dp)
             ) {
-                rows.forEach { rowTiles ->
+                if (sourceId == "washington" && missionId in listOf("M5", "M7")) {
+                    val positions = if (missionId == "M5") mapOf(0 to "13V", 2 to "12R", 4 to "11R", 6 to "10R", 5 to "15R", 7 to "14R")
+                        else mapOf(0 to "15V", 2 to "11R", 4 to "10R", 6 to "13V", 5 to "14V", 7 to "12R")
+                    repeat(4) { rowIndex ->
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(0.dp)) {
+                            repeat(2) { colIndex ->
+                                val tile = positions[rowIndex * 2 + colIndex]
+                                if (tile == null) Spacer(Modifier.weight(1f).aspectRatio(1f)) else {
+                                    Card(modifier = Modifier.weight(1f).aspectRatio(1f).border(0.5.dp, MaterialTheme.colorScheme.outline).clickable { enlargedTile = tile }, shape = RectangleShape, colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
+                                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                            AssetImage(path = tileAsset(tile), contentDescription = "Tile $tile", modifier = Modifier.fillMaxSize().graphicsLayer { rotationZ = tileRotationDegrees(tile) })
+                                            Text(rotationLabel(tileRotationDegrees(tile)), modifier = Modifier.align(Alignment.TopCenter).padding(top = 2.dp), style = MaterialTheme.typography.labelSmall, color = Color.White)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else if (sourceId == "washington" && missionId == "M8") {
+                    val positions = mapOf(2 to "12V", 3 to "11R", 4 to "13V", 6 to "14V", 7 to "15V")
+                    repeat(3) { rowIndex ->
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(0.dp)) {
+                            repeat(3) { colIndex ->
+                                val tile = positions[rowIndex * 3 + colIndex]
+                                if (tile == null) Spacer(Modifier.weight(1f).aspectRatio(1f)) else {
+                                    Card(modifier = Modifier.weight(1f).aspectRatio(1f).border(0.5.dp, MaterialTheme.colorScheme.outline).clickable { enlargedTile = tile }, shape = RectangleShape, colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
+                                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                            AssetImage(path = tileAsset(tile), contentDescription = "Tile $tile", modifier = Modifier.fillMaxSize().graphicsLayer { rotationZ = tileRotationDegrees(tile) })
+                                            Text(rotationLabel(tileRotationDegrees(tile)), modifier = Modifier.align(Alignment.TopCenter).padding(top = 2.dp), style = MaterialTheme.typography.labelSmall, color = Color.White)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else if (sourceId == "washington" && missionId == "M4") {
+                    val positions = mapOf(3 to "10V", 4 to "11V", 6 to "9R", 7 to "1R", 9 to "6R", 10 to "3R")
+                    repeat(4) { rowIndex ->
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(0.dp)) {
+                            repeat(3) { colIndex ->
+                                val index = rowIndex * 3 + colIndex
+                                val tile = positions[index]
+                                if (tile == null) Spacer(Modifier.weight(1f).aspectRatio(1f)) else {
+                                    Card(modifier = Modifier.weight(1f).aspectRatio(1f).border(0.5.dp, MaterialTheme.colorScheme.outline).clickable { enlargedTile = tile }, shape = RectangleShape, colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
+                                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                            AssetImage(path = tileAsset(tile), contentDescription = "Tile $tile", modifier = Modifier.fillMaxSize().graphicsLayer { rotationZ = tileRotationDegrees(tile) })
+                                            Text(rotationLabel(tileRotationDegrees(tile)), modifier = Modifier.align(Alignment.TopCenter).padding(top = 2.dp), style = MaterialTheme.typography.labelSmall, color = Color.White)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else rows.forEach { rowTiles ->
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(0.dp)) {
                         rowTiles.forEach { tile ->
+                            val drawable = tileAsset(tile)
                             Card(
                                 modifier = Modifier.weight(1f).aspectRatio(1f)
                                     .border(0.5.dp, MaterialTheme.colorScheme.outline)
@@ -718,13 +1143,28 @@ private fun MapLayoutScreen(tiles: List<String>, missionId: String, onBack: () -
                                 shape = RectangleShape,
                                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                             ) {
-                                Column(
-                                    modifier = Modifier.fillMaxSize().padding(2.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.Center
-                                ) {
-                                    Text(tile, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                                    Text("↗", style = MaterialTheme.typography.labelSmall)
+                                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                    if (true) {
+                                        AssetImage(
+                                            path = drawable,
+                                            contentDescription = "Tile $tile, upright",
+                                            contentScale = ContentScale.Fit,
+                                            modifier = Modifier.fillMaxSize()
+                                                .graphicsLayer { rotationZ = tileRotationDegrees(tile) }
+                                        )
+                                        Text(
+                                            rotationLabel(tileRotationDegrees(tile)),
+                                            modifier = Modifier.align(Alignment.TopCenter).padding(top = 2.dp),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = Color.White
+                                        )
+                                    } else {
+                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                            Text(tile, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                                            Text("↑ UP", style = MaterialTheme.typography.labelSmall)
+                                            Text("IMAGE MISSING", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.error)
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -736,13 +1176,35 @@ private fun MapLayoutScreen(tiles: List<String>, missionId: String, onBack: () -
             }
         }
 
-        Spacer(Modifier.weight(1f))
+        Spacer(Modifier.height(12.dp))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            OutlinedButton(onClick = onBack) { Text("Back") }
-            Button(
-                onClick = onContinue,
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F), contentColor = Color.White)
-            ) { Text("BEGIN!", fontWeight = FontWeight.Bold) }
+            OutlinedButton(onClick = if (enlargedTile != null) ({ enlargedTile = null }) else onBack) {
+                Text(if (enlargedTile != null) "Back to map" else "Back")
+            }
+            if (enlargedTile == null) {
+                Button(
+                    onClick = onContinue,
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F), contentColor = Color.White)
+                ) { Text("BEGIN!", fontWeight = FontWeight.Bold) }
+            }
+        }
+    }
+    if (showMissionMap) {
+        Dialog(onDismissRequest = { showMissionMap = false }) {
+            Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+                Column(Modifier.padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("${missionId} · ${if (sourceId == "washington") washingtonMissionInfo[missionId]?.name ?: "Washington Z.C." else coreMissionInfo[missionId]?.name ?: "Zombicide Life"}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    Spacer(Modifier.height(8.dp))
+                    AssetImage(
+                        path = "maps/map_${missionId.lowercase()}.png",
+                        contentDescription = "General map for $missionId showing token locations",
+                        modifier = Modifier.fillMaxWidth().weight(1f, fill = false).height(420.dp),
+                        contentScale = ContentScale.Fit
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Button(onClick = { showMissionMap = false }) { Text("Close map") }
+                }
+            }
         }
     }
 }
@@ -752,8 +1214,23 @@ private fun PlayerSelectionScreen(onBack: () -> Unit, onContinue: () -> Unit) {
     Column(Modifier.fillMaxSize().padding(16.dp)) {
         Text("Survivor Selection", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(8.dp))
+        Box(Modifier.fillMaxWidth().height(190.dp), contentAlignment = Alignment.Center) {
+            DrawableImage(
+                name = "survivor1.png",
+                contentDescription = "Survivor illustration 1",
+                modifier = Modifier.width(150.dp).height(180.dp).graphicsLayer { rotationZ = -30f; translationX = -100f }
+            )
+            DrawableImage(
+                name = "survivor2.png",
+                contentDescription = "Survivor illustration 2",
+                modifier = Modifier.width(150.dp).height(180.dp).graphicsLayer { rotationZ = 30f; translationX = 100f }
+            )
+        }
         Text("Choose Survivors", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
         Text("Choose the Survivors and distribute them among players as desired. All players form one team.", style = MaterialTheme.typography.bodyMedium)
+        Spacer(Modifier.height(8.dp))
+        Text("Health and Skills", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+        Text("Classic Survivors have 3 Health. Kid Survivors have 2 Health and can use the Slippery Skill.", style = MaterialTheme.typography.bodyMedium)
         Spacer(Modifier.height(16.dp))
         Text("Starting Equipment", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
         Text("Deal Starting Equipment cards randomly and as evenly as possible among all Survivors. If needed, choose who receives the extra card(s).", style = MaterialTheme.typography.bodyMedium)
@@ -771,7 +1248,9 @@ private fun PlayerDashboardScreen(onBack: () -> Unit, onContinue: () -> Unit) {
         Text("Player Dashboard Setup", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(8.dp))
         Text("Each player should prepare their own dashboard and Survivor miniature.", style = MaterialTheme.typography.bodyLarge)
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(8.dp))
+        DrawableImage("dashboard.png", "Player dashboard reference", Modifier.fillMaxWidth().height(190.dp), ContentScale.Fit)
+        Spacer(Modifier.height(12.dp))
         Text("1. Choose a base-ring color", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
         Text("Each player takes one of the available colors for their Survivor base rings. Place the chosen ring under the Survivor miniature.", style = MaterialTheme.typography.bodyMedium)
         Spacer(Modifier.height(16.dp))
@@ -779,6 +1258,7 @@ private fun PlayerDashboardScreen(onBack: () -> Unit, onContinue: () -> Unit) {
         Spacer(Modifier.height(8.dp))
         Text("• Life tracker: set it to the maximum value shown on the dashboard.", style = MaterialTheme.typography.bodyMedium)
         Text("• Skill tracker: set it to the blue level.", style = MaterialTheme.typography.bodyMedium)
+        Text("• Danger Zone tracker: set it to 0, at the far-left position.", style = MaterialTheme.typography.bodyMedium)
         Text("• Reserve: place all three reserve markers in the top-right area of the dashboard.", style = MaterialTheme.typography.bodyMedium)
         Spacer(Modifier.weight(1f))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
@@ -799,10 +1279,10 @@ private fun FirstPlayerScreen(onBack: () -> Unit, onContinue: () -> Unit) {
             modifier = Modifier.fillMaxWidth(),
             contentAlignment = Alignment.Center
         ) {
-            Image(
-                painter = painterResource(R.drawable.first_player_token),
+            AssetImage(
+                path = "tokens/first_player_token.png",
                 contentDescription = "First Player Token",
-                contentScale = ContentScale.Crop,
+                contentScale = ContentScale.Fit,
                 modifier = Modifier.fillMaxWidth(0.6f)
                     .aspectRatio(1f)
                     .clip(CircleShape)
@@ -818,18 +1298,36 @@ private fun FirstPlayerScreen(onBack: () -> Unit, onContinue: () -> Unit) {
 }
 
 @Composable
-private fun GameplayScreen(onRuleSet: () -> Unit, onHome: () -> Unit) {
+private fun GameplayScreen(
+    missionId: String,
+    isComplete: Boolean,
+    onToggleComplete: () -> Unit,
+    onRuleSet: () -> Unit,
+    onHome: () -> Unit
+) {
     Column(
         Modifier.fillMaxSize().padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text("Mission in Progress", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+        Text("${missionId} · ${coreMissionInfo[missionId]?.name ?: "Zombicide Life"}", style = MaterialTheme.typography.titleMedium)
+        Spacer(Modifier.height(18.dp))
+        Button(
+            onClick = onToggleComplete,
+            modifier = Modifier.fillMaxWidth().height(56.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = if (isComplete) Color(0xFF2E7D32) else MaterialTheme.colorScheme.secondaryContainer,
+                contentColor = if (isComplete) Color.White else MaterialTheme.colorScheme.onSecondaryContainer
+            )
+        ) {
+            Text(if (isComplete) "✓ Mission complete!" else "Mark mission complete", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        }
         Spacer(Modifier.weight(1f))
         Button(
             onClick = onRuleSet,
             modifier = Modifier.fillMaxWidth().height(68.dp)
         ) {
-            Text("Rule-set", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+            Text("Rules Reference", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
         }
         Spacer(Modifier.weight(1f))
         OutlinedButton(onClick = onHome) { Text("Return to Main Page") }
@@ -881,6 +1379,11 @@ private fun RulebookScreen(onBack: () -> Unit) {
 }
 
 private fun loadMissionTiles(context: Context, setId: String, missionId: String): List<String> {
+    if (setId == "washington") return washingtonMissionInfo[missionId]?.tiles ?: emptyList()
+    // These mission tile orders are explicitly defined in the app source from the user's layout instructions.
+    if (setId == "core" && missionId in listOf("M12", "M13", "M14", "M15")) {
+        return coreMissionInfo[missionId]?.tiles ?: listOf("1V", "3V")
+    }
     return runCatching {
         val root = JSONObject(context.assets.open("missions/mission_components.json").bufferedReader().use { it.readText() })
         val sets = root.getJSONArray("sets")
@@ -907,13 +1410,78 @@ private fun ChecklistRow(
     quantity: String? = null,
     checked: Boolean,
     onCheckedChange: () -> Unit,
-    prominent: Boolean = false
+    prominent: Boolean = false,
+    drawableName: String? = null
 ) {
+    val context = LocalContext.current
+    val tokenAsset = remember(label) {
+        val key = label.lowercase().replace(Regex("[^a-z0-9]+"), "_").trim('_')
+        val aliases = when {
+            label.contains("Starting Spawn Zone", ignoreCase = true) -> listOf("spawn_1st")
+            label.contains("Spawn Zone", ignoreCase = true) -> when {
+                label.contains("Blue", true) -> listOf("spawn_blue")
+                label.contains("Green", true) -> listOf("spawn_green")
+                label.contains("Red", true) -> listOf("spawn_red")
+                else -> listOf("spawn_red", "spawn_blue", "spawn_green")
+            }
+            label.contains("Objective", ignoreCase = true) -> when {
+                label.contains("Blue", true) -> listOf("objective_blue")
+                label.contains("Green", true) -> listOf("objective_green")
+                else -> listOf("objective_red")
+            }
+            label.contains("Epic Weapon Crate", ignoreCase = true) -> listOf("pimp_crate")
+            label.contains("Exit Zone", ignoreCase = true) -> listOf("exit")
+            label.contains("Open Door", ignoreCase = true) -> listOf("door_red_open", "door_blue_open", "door_green_open")
+            label.contains("Blue Door", ignoreCase = true) -> listOf("door_blue")
+            label.contains("Green Door", ignoreCase = true) -> listOf("door_green")
+            label.contains("Police Car", ignoreCase = true) -> listOf("police_car")
+            label.contains("Muscle Car", ignoreCase = true) -> listOf("muscle_car")
+            label.contains("Broken Door", ignoreCase = true) -> listOf("door_red", "door_blue", "door_green")
+            label.contains("Noise", ignoreCase = true) -> listOf("noise")
+            label.contains("Crashed Car", ignoreCase = true) -> listOf("muscle_car", "police_car")
+            label.contains("First Player", ignoreCase = true) -> listOf("spawn_1st")
+            label.contains("Player Start", ignoreCase = true) -> listOf("player_start")
+            else -> listOf("${key}_token", key)
+        }
+        // Alias names already include the color suffix (e.g. spawn_red, objective_red).
+        // Do not prepend the color from the label, which creates invalid names like red_spawn_red.
+        aliases.firstOrNull()?.let { "tokens/$it.png" } ?: "tokens/$key.png"
+    }
     Row(
         modifier = Modifier.fillMaxWidth().clickable(onClick = onCheckedChange).padding(vertical = 3.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Checkbox(checked = checked, onCheckedChange = null)
+        if (true) {
+            Box(modifier = Modifier.width(60.dp).height(60.dp).padding(end = 4.dp), contentAlignment = Alignment.Center) {
+                if (drawableName != null) {
+                    DrawableImage(
+                        name = drawableName,
+                        contentDescription = "$label miniature",
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                } else {
+                    AssetImage(
+                        path = tokenAsset,
+                        contentDescription = "$label token",
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+                if (checked) {
+                    Text(
+                        "✓",
+                        color = Color(0xFF16803C),
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.ExtraBold,
+                        modifier = Modifier.align(Alignment.TopEnd)
+                    )
+                }
+            }
+        } else {
+            // Keep a checkbox for checklist items that do not have a token illustration.
+            Checkbox(checked = checked, onCheckedChange = null)
+        }
         Column(Modifier.weight(1f).padding(start = 4.dp)) {
             Text(label, style = if (prominent) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
             Text(detail, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -942,7 +1510,7 @@ private fun RulesScreen(
             value = query,
             onValueChange = onQueryChange,
             modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
-            label = { Text("Search core rules") },
+            label = { Text("Search rules") },
             singleLine = true
         )
         val matches = sections.flatMap { section ->
