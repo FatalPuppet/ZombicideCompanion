@@ -9,7 +9,7 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="4bbbb7e0-18b2-4192-b875-85a3393eb5af" name="Changes" comment="General cleanup" />
+    <list default="true" id="4bbbb7e0-18b2-4192-b875-85a3393eb5af" name="Changes" comment="Core, Washington ZC, Fort Hendrix rules and mission loaded. Digital in progress" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -159,7 +159,8 @@
     <MESSAGE value="Core and Expansion rules, mission, maps completed. Digital mission in development" />
     <MESSAGE value="Core and Expansions rules, mission, maps completed. Digital mission in development" />
     <MESSAGE value="General cleanup" />
-    <option name="LAST_COMMIT_MESSAGE" value="General cleanup" />
+    <MESSAGE value="Core, Washington ZC, Fort Hendrix rules and mission loaded. Digital in progress" />
+    <option name="LAST_COMMIT_MESSAGE" value="Core, Washington ZC, Fort Hendrix rules and mission loaded. Digital in progress" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
