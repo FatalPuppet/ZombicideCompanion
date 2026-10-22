@@ -9,8 +9,8 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="4bbbb7e0-18b2-4192-b875-85a3393eb5af" name="Changes" comment="Core rules, mission, maps completed; Washington ZC implementation started">
-      <change afterPath="$PROJECT_DIR$/.idea/deviceManager.xml" afterDir="false" />
+    <list default="true" id="4bbbb7e0-18b2-4192-b875-85a3393eb5af" name="Changes" comment="Core rules, mission, maps completed. Washington ZC implementation started">
+      <change afterPath="$PROJECT_DIR$/.idea/dictionaries/project.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gradle/9.8.0/executionHistory/executionHistory.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/9.8.0/executionHistory/executionHistory.bin" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gradle/9.8.0/executionHistory/executionHistory.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/9.8.0/executionHistory/executionHistory.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gradle/9.8.0/fileHashes/fileHashes.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/9.8.0/fileHashes/fileHashes.bin" afterDir="false" />
@@ -18,39 +18,20 @@
       <change beforePath="$PROJECT_DIR$/.gradle/9.8.0/fileHashes/resourceHashesCache.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/9.8.0/fileHashes/resourceHashesCache.bin" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/3el8eyewg7goqkq5gsli2ul6h/candidates.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/configuration-cache/3el8eyewg7goqkq5gsli2ul6h/candidates.bin" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/57d93766-6781-435e-b57f-ed93cb913498/.globals.work.bin" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/57d93766-6781-435e-b57f-ed93cb913498/.strings.work.bin" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/57d93766-6781-435e-b57f-ed93cb913498/_app.work.bin" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/57d93766-6781-435e-b57f-ed93cb913498/buildfingerprint.bin" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/57d93766-6781-435e-b57f-ed93cb913498/classloaderscopes.bin" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/57d93766-6781-435e-b57f-ed93cb913498/entry.bin" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/57d93766-6781-435e-b57f-ed93cb913498/projectfingerprint.bin" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/57d93766-6781-435e-b57f-ed93cb913498/work.bin" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/6wc7v9yccv8ctnzmj1zx4imsb/candidates.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/configuration-cache/6wc7v9yccv8ctnzmj1zx4imsb/candidates.bin" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CHANGELOG.md" beforeDir="false" afterPath="$PROJECT_DIR$/CHANGELOG.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/build/intermediates/apk_ide_redirect_file/debug/createDebugApkListingFileRedirect/redirect.txt" beforeDir="false" afterPath="$PROJECT_DIR$/app/build/intermediates/apk_ide_redirect_file/debug/createDebugApkListingFileRedirect/redirect.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes/com/fatalpuppet/zombicide/AppScreen.class" beforeDir="false" afterPath="$PROJECT_DIR$/app/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes/com/fatalpuppet/zombicide/AppScreen.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes/com/fatalpuppet/zombicide/ComposableSingletons$MainActivityKt.class" beforeDir="false" afterPath="$PROJECT_DIR$/app/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes/com/fatalpuppet/zombicide/ComposableSingletons$MainActivityKt.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes/com/fatalpuppet/zombicide/MainActivity.class" beforeDir="false" afterPath="$PROJECT_DIR$/app/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes/com/fatalpuppet/zombicide/MainActivity.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes/com/fatalpuppet/zombicide/MainActivityKt$MissionSelectionScreen$1$1$1$1$1$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/app/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes/com/fatalpuppet/zombicide/MainActivityKt$MissionSelectionScreen$1$1$1$1$1$1.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes/com/fatalpuppet/zombicide/MainActivityKt$MissionSelectionScreen$1$1$1$1$2.class" beforeDir="false" afterPath="$PROJECT_DIR$/app/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes/com/fatalpuppet/zombicide/MainActivityKt$MissionSelectionScreen$1$1$1$1$2.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes/com/fatalpuppet/zombicide/MainActivityKt$MissionSelectionScreen$lambda$96$lambda$92$lambda$91$$inlined$items$default$1.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes/com/fatalpuppet/zombicide/MainActivityKt$MissionSelectionScreen$lambda$96$lambda$92$lambda$91$$inlined$items$default$2.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes/com/fatalpuppet/zombicide/MainActivityKt$MissionSelectionScreen$lambda$96$lambda$92$lambda$91$$inlined$items$default$3.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes/com/fatalpuppet/zombicide/MainActivityKt$MissionSelectionScreen$lambda$96$lambda$92$lambda$91$$inlined$items$default$4.class" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/app/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes/com/fatalpuppet/zombicide/MainActivityKt$RulesScreen$1$2$1$1$1$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/app/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes/com/fatalpuppet/zombicide/MainActivityKt$RulesScreen$1$2$1$1$1$1.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes/com/fatalpuppet/zombicide/MainActivityKt$RulesScreen$1$2$1$1$2.class" beforeDir="false" afterPath="$PROJECT_DIR$/app/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes/com/fatalpuppet/zombicide/MainActivityKt$RulesScreen$1$2$1$1$2.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes/com/fatalpuppet/zombicide/MainActivityKt$RulesScreen$lambda$199$lambda$198$lambda$197$$inlined$items$default$1.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes/com/fatalpuppet/zombicide/MainActivityKt$RulesScreen$lambda$199$lambda$198$lambda$197$$inlined$items$default$2.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes/com/fatalpuppet/zombicide/MainActivityKt$RulesScreen$lambda$199$lambda$198$lambda$197$$inlined$items$default$3.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes/com/fatalpuppet/zombicide/MainActivityKt$RulesScreen$lambda$199$lambda$198$lambda$197$$inlined$items$default$4.class" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/app/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes/com/fatalpuppet/zombicide/MainActivityKt.class" beforeDir="false" afterPath="$PROJECT_DIR$/app/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes/com/fatalpuppet/zombicide/MainActivityKt.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes/com/fatalpuppet/zombicide/MissionComponent.class" beforeDir="false" afterPath="$PROJECT_DIR$/app/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes/com/fatalpuppet/zombicide/MissionComponent.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes/com/fatalpuppet/zombicide/MissionInfo.class" beforeDir="false" afterPath="$PROJECT_DIR$/app/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes/com/fatalpuppet/zombicide/MissionInfo.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes/com/fatalpuppet/zombicide/RuleSourceOption.class" beforeDir="false" afterPath="$PROJECT_DIR$/app/build/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes/com/fatalpuppet/zombicide/RuleSourceOption.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/build/intermediates/compile_and_runtime_r_class_jar/debug/processDebugResources/R.jar" beforeDir="false" afterPath="$PROJECT_DIR$/app/build/intermediates/compile_and_runtime_r_class_jar/debug/processDebugResources/R.jar" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/build/intermediates/compile_app_classes_jar/debug/bundleDebugClassesToCompileJar/classes.jar" beforeDir="false" afterPath="$PROJECT_DIR$/app/build/intermediates/compile_app_classes_jar/debug/bundleDebugClassesToCompileJar/classes.jar" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar" beforeDir="false" afterPath="$PROJECT_DIR$/app/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/build/intermediates/compile_symbol_list/debug/generateDebugRFile/R.txt" beforeDir="false" afterPath="$PROJECT_DIR$/app/build/intermediates/compile_symbol_list/debug/generateDebugRFile/R.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/build/intermediates/dex/debug/mergeProjectDexDebug/0/classes.dex" beforeDir="false" afterPath="$PROJECT_DIR$/app/build/intermediates/dex/debug/mergeProjectDexDebug/0/classes.dex" afterDir="false" />
@@ -68,27 +49,17 @@
       <change beforePath="$PROJECT_DIR$/app/build/intermediates/manifest_merge_blame_file/debug/processDebugMainManifest/manifest-merger-blame-debug-report.txt" beforeDir="false" afterPath="$PROJECT_DIR$/app/build/intermediates/manifest_merge_blame_file/debug/processDebugMainManifest/manifest-merger-blame-debug-report.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/build/intermediates/merged_manifest/debug/processDebugMainManifest/AndroidManifest.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/build/intermediates/merged_manifest/debug/processDebugMainManifest/AndroidManifest.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/build/intermediates/merged_manifests/debug/processDebugManifest/AndroidManifest.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/build/intermediates/merged_manifests/debug/processDebugManifest/AndroidManifest.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/build/intermediates/merged_res_blame_folder/debug/mergeDebugResources/out/multi-v2/mergeDebugResources.json" beforeDir="false" afterPath="$PROJECT_DIR$/app/build/intermediates/merged_res_blame_folder/debug/mergeDebugResources/out/multi-v2/mergeDebugResources.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/build/intermediates/packaged_manifests/debug/processDebugManifestForPackage/AndroidManifest.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/build/intermediates/packaged_manifests/debug/processDebugManifestForPackage/AndroidManifest.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/build/intermediates/project_dex_archive/debug/dexBuilderDebug/out/com/fatalpuppet/zombicide/AppScreen.dex" beforeDir="false" afterPath="$PROJECT_DIR$/app/build/intermediates/project_dex_archive/debug/dexBuilderDebug/out/com/fatalpuppet/zombicide/AppScreen.dex" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/build/intermediates/project_dex_archive/debug/dexBuilderDebug/out/com/fatalpuppet/zombicide/ComposableSingletons$MainActivityKt.dex" beforeDir="false" afterPath="$PROJECT_DIR$/app/build/intermediates/project_dex_archive/debug/dexBuilderDebug/out/com/fatalpuppet/zombicide/ComposableSingletons$MainActivityKt.dex" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/build/intermediates/project_dex_archive/debug/dexBuilderDebug/out/com/fatalpuppet/zombicide/MainActivity.dex" beforeDir="false" afterPath="$PROJECT_DIR$/app/build/intermediates/project_dex_archive/debug/dexBuilderDebug/out/com/fatalpuppet/zombicide/MainActivity.dex" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/build/intermediates/project_dex_archive/debug/dexBuilderDebug/out/com/fatalpuppet/zombicide/MainActivityKt$MissionSelectionScreen$1$1$1$1$1$1.dex" beforeDir="false" afterPath="$PROJECT_DIR$/app/build/intermediates/project_dex_archive/debug/dexBuilderDebug/out/com/fatalpuppet/zombicide/MainActivityKt$MissionSelectionScreen$1$1$1$1$1$1.dex" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/build/intermediates/project_dex_archive/debug/dexBuilderDebug/out/com/fatalpuppet/zombicide/MainActivityKt$MissionSelectionScreen$1$1$1$1$2.dex" beforeDir="false" afterPath="$PROJECT_DIR$/app/build/intermediates/project_dex_archive/debug/dexBuilderDebug/out/com/fatalpuppet/zombicide/MainActivityKt$MissionSelectionScreen$1$1$1$1$2.dex" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/build/intermediates/project_dex_archive/debug/dexBuilderDebug/out/com/fatalpuppet/zombicide/MainActivityKt$MissionSelectionScreen$lambda$96$lambda$92$lambda$91$$inlined$items$default$1.dex" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/build/intermediates/project_dex_archive/debug/dexBuilderDebug/out/com/fatalpuppet/zombicide/MainActivityKt$MissionSelectionScreen$lambda$96$lambda$92$lambda$91$$inlined$items$default$2.dex" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/build/intermediates/project_dex_archive/debug/dexBuilderDebug/out/com/fatalpuppet/zombicide/MainActivityKt$MissionSelectionScreen$lambda$96$lambda$92$lambda$91$$inlined$items$default$3.dex" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/build/intermediates/project_dex_archive/debug/dexBuilderDebug/out/com/fatalpuppet/zombicide/MainActivityKt$MissionSelectionScreen$lambda$96$lambda$92$lambda$91$$inlined$items$default$4.dex" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/app/build/intermediates/project_dex_archive/debug/dexBuilderDebug/out/com/fatalpuppet/zombicide/MainActivityKt$RulesScreen$1$2$1$1$1$1.dex" beforeDir="false" afterPath="$PROJECT_DIR$/app/build/intermediates/project_dex_archive/debug/dexBuilderDebug/out/com/fatalpuppet/zombicide/MainActivityKt$RulesScreen$1$2$1$1$1$1.dex" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/build/intermediates/project_dex_archive/debug/dexBuilderDebug/out/com/fatalpuppet/zombicide/MainActivityKt$RulesScreen$1$2$1$1$2.dex" beforeDir="false" afterPath="$PROJECT_DIR$/app/build/intermediates/project_dex_archive/debug/dexBuilderDebug/out/com/fatalpuppet/zombicide/MainActivityKt$RulesScreen$1$2$1$1$2.dex" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/build/intermediates/project_dex_archive/debug/dexBuilderDebug/out/com/fatalpuppet/zombicide/MainActivityKt$RulesScreen$lambda$199$lambda$198$lambda$197$$inlined$items$default$1.dex" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/build/intermediates/project_dex_archive/debug/dexBuilderDebug/out/com/fatalpuppet/zombicide/MainActivityKt$RulesScreen$lambda$199$lambda$198$lambda$197$$inlined$items$default$2.dex" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/build/intermediates/project_dex_archive/debug/dexBuilderDebug/out/com/fatalpuppet/zombicide/MainActivityKt$RulesScreen$lambda$199$lambda$198$lambda$197$$inlined$items$default$3.dex" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/build/intermediates/project_dex_archive/debug/dexBuilderDebug/out/com/fatalpuppet/zombicide/MainActivityKt$RulesScreen$lambda$199$lambda$198$lambda$197$$inlined$items$default$4.dex" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/app/build/intermediates/project_dex_archive/debug/dexBuilderDebug/out/com/fatalpuppet/zombicide/MainActivityKt.dex" beforeDir="false" afterPath="$PROJECT_DIR$/app/build/intermediates/project_dex_archive/debug/dexBuilderDebug/out/com/fatalpuppet/zombicide/MainActivityKt.dex" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/build/intermediates/project_dex_archive/debug/dexBuilderDebug/out/com/fatalpuppet/zombicide/MissionComponent.dex" beforeDir="false" afterPath="$PROJECT_DIR$/app/build/intermediates/project_dex_archive/debug/dexBuilderDebug/out/com/fatalpuppet/zombicide/MissionComponent.dex" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/build/intermediates/project_dex_archive/debug/dexBuilderDebug/out/com/fatalpuppet/zombicide/MissionInfo.dex" beforeDir="false" afterPath="$PROJECT_DIR$/app/build/intermediates/project_dex_archive/debug/dexBuilderDebug/out/com/fatalpuppet/zombicide/MissionInfo.dex" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/build/intermediates/project_dex_archive/debug/dexBuilderDebug/out/com/fatalpuppet/zombicide/RuleSourceOption.dex" beforeDir="false" afterPath="$PROJECT_DIR$/app/build/intermediates/project_dex_archive/debug/dexBuilderDebug/out/com/fatalpuppet/zombicide/RuleSourceOption.dex" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/build/intermediates/runtime_symbol_list/debug/processDebugResources/R.txt" beforeDir="false" afterPath="$PROJECT_DIR$/app/build/intermediates/runtime_symbol_list/debug/processDebugResources/R.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/build/intermediates/stable_resource_ids_file/debug/processDebugResources/stableIds.txt" beforeDir="false" afterPath="$PROJECT_DIR$/app/build/intermediates/stable_resource_ids_file/debug/processDebugResources/stableIds.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/build/intermediates/symbol_list_with_package_name/debug/generateDebugRFile/package-aware-r.txt" beforeDir="false" afterPath="$PROJECT_DIR$/app/build/intermediates/symbol_list_with_package_name/debug/generateDebugRFile/package-aware-r.txt" afterDir="false" />
@@ -151,7 +122,6 @@
       <change beforePath="$PROJECT_DIR$/app/build/kotlin/compileDebugKotlin/classpath-snapshot/shrunk-classpath-snapshot.bin" beforeDir="false" afterPath="$PROJECT_DIR$/app/build/kotlin/compileDebugKotlin/classpath-snapshot/shrunk-classpath-snapshot.bin" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/build/outputs/apk/debug/app-debug.apk" beforeDir="false" afterPath="$PROJECT_DIR$/app/build/outputs/apk/debug/app-debug.apk" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/java/com/fatalpuppet/zombicide/MainActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/fatalpuppet/zombicide/MainActivity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/build/reports/problems/problems-report.html" beforeDir="false" afterPath="$PROJECT_DIR$/build/reports/problems/problems-report.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -182,6 +152,9 @@
     &quot;accountId&quot;: &quot;1748d14a-3d9f-4113-a493-a07096c313d6&quot;
   }
 }</component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 0,
   &quot;fromUser&quot;: false
@@ -207,6 +180,7 @@
     &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
     &quot;cf.first.check.clang-format&quot;: &quot;false&quot;,
     &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
+    &quot;com.google.services.firebase.aqiPopupShown&quot;: &quot;true&quot;,
     &quot;git-widget-placeholder&quot;: &quot;main&quot;,
     &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
     &quot;last_opened_file_path&quot;: &quot;/Users/mirkocalvi/Downloads/ZombicideCompanion&quot;,
@@ -294,14 +268,15 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Core rules and Missions registered" />
     <MESSAGE value="Core rules, mission, maps completed; Washington ZC implementation started" />
-    <option name="LAST_COMMIT_MESSAGE" value="Core rules, mission, maps completed; Washington ZC implementation started" />
+    <MESSAGE value="Core rules, mission, maps completed. Washington ZC implementation started" />
+    <option name="LAST_COMMIT_MESSAGE" value="Core rules, mission, maps completed. Washington ZC implementation started" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" type="kotlin-line">
           <url>file://$PROJECT_DIR$/app/src/main/java/com/fatalpuppet/zombicide/MainActivity.kt</url>
-          <line>253</line>
+          <line>259</line>
           <option name="timeStamp" value="2" />
         </line-breakpoint>
       </breakpoints>

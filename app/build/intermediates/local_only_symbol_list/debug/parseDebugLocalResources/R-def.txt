@@ -2,10 +2,13 @@ R_DEF: Internal format may change without notice
 local
 drawable abomination
 drawable brute
+drawable campaign_sheet
+drawable clock
 drawable dashboard
 drawable logo_fort_hendrix
 drawable logo_washington_zc
 drawable logo_zombicide
+drawable penny
 drawable runner
 drawable survivor1
 drawable survivor2
