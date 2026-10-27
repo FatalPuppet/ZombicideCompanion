@@ -1,6 +1,8 @@
 package com.fatalpuppet.zombicide
 
 import android.os.Bundle
+import android.content.Intent
+import android.net.Uri
 import android.graphics.BitmapFactory
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -123,7 +125,7 @@ private val ruleSources = listOf(
     RuleSourceOption("core", "Core", "Zombicide 2nd Edition core missions", true),
     RuleSourceOption("washington", "Washington Z.C.", "10 expansion missions", true),
     RuleSourceOption("fort", "Fort Hendrix", "10 expansion missions", true),
-    RuleSourceOption("digital", "Digital", "Use a digital mission source", false)
+    RuleSourceOption("digital", "Digital", "45 digital missions · mission setup data is being completely updated", true)
 )
 
 class MainActivity : ComponentActivity() {
@@ -148,6 +150,9 @@ private fun CompanionApp(sections: List<RuleSection>) {
     val selectedMissionTiles = remember(selectedSource, selectedMissionId) { loadMissionTiles(context, selectedSource, selectedMissionId) }
     var preparedItems by remember { mutableStateOf(setOf<String>()) }
     var completedMissions by remember { mutableStateOf(setOf<String>()) }
+    val welcomePreferences = remember(context) { context.getSharedPreferences("zombicide_companion_preferences", Context.MODE_PRIVATE) }
+    var showFirstRunHelp by remember { mutableStateOf(!welcomePreferences.getBoolean("first_run_help_shown", false)) }
+    var showAboutDialog by remember { mutableStateOf(false) }
 
     MaterialTheme {
         Scaffold(
@@ -169,7 +174,8 @@ private fun CompanionApp(sections: List<RuleSection>) {
                     )
                     screen == AppScreen.HOME -> HomeScreen(
                         onStart = { screen = AppScreen.RULE_SOURCE },
-                        onRules = { query = ""; rulesReturnScreen = AppScreen.HOME; screen = AppScreen.RULES }
+                        onRules = { query = ""; rulesReturnScreen = AppScreen.HOME; screen = AppScreen.RULES },
+                        onVersionClick = { showAboutDialog = true }
                     )
                     screen == AppScreen.RULES -> RulesScreen(
                         sections = sections,
@@ -252,13 +258,48 @@ private fun CompanionApp(sections: List<RuleSection>) {
                         onBack = { screen = AppScreen.GAMEPLAY }
                     )
                 }
+                if (showFirstRunHelp) {
+                    Dialog(onDismissRequest = {
+                        welcomePreferences.edit().putBoolean("first_run_help_shown", true).apply()
+                        showFirstRunHelp = false
+                    }) {
+                        Card(Modifier.fillMaxWidth()) {
+                            Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                                Text("Welcome to Zombicide Companion", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                                Text("Choose a mission source, select a mission, then follow the setup pages to prepare tiles and components, select Survivors, choose the first player, and arrange the map. During play, use the Rules reference to look up rules and mark the mission complete when finished.", style = MaterialTheme.typography.bodyMedium)
+                                Button(onClick = {
+                                    welcomePreferences.edit().putBoolean("first_run_help_shown", true).apply()
+                                    showFirstRunHelp = false
+                                }, modifier = Modifier.align(Alignment.End)) {
+                                    Text("Got it")
+                                }
+                            }
+                        }
+                    }
+                }
+                if (showAboutDialog) {
+                    Dialog(onDismissRequest = { showAboutDialog = false }) {
+                        Card(Modifier.fillMaxWidth()) {
+                            Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                                Text("Zombicide Companion", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                                Text("A Zombicide 2nd Edition mission configurator helper. It guides you through mission selection, game setup, map preparation, and rules reference.", style = MaterialTheme.typography.bodyMedium)
+                                Text("Developed by Mirko A. C.", style = MaterialTheme.typography.bodyMedium)
+                                Text("GitHub repository", color = MaterialTheme.colorScheme.primary, modifier = Modifier.clickable {
+                                    showAboutDialog = false
+                                    runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/FatalPuppet/ZombicideCompanion"))) }
+                                })
+                                Button(onClick = { showAboutDialog = false }, modifier = Modifier.align(Alignment.End)) { Text("Close") }
+                            }
+                        }
+                    }
+                }
             }
         }
     }
 }
 
 @Composable
-private fun HomeScreen(onStart: () -> Unit, onRules: () -> Unit) {
+private fun HomeScreen(onStart: () -> Unit, onRules: () -> Unit, onVersionClick: () -> Unit) {
     Column(
         modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp, vertical = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -277,7 +318,12 @@ private fun HomeScreen(onStart: () -> Unit, onRules: () -> Unit) {
             Text("Rules reference")
         }
         Spacer(Modifier.weight(1f))
-        Text("Offline companion · Core mission setup in progress", style = MaterialTheme.typography.labelSmall)
+        Text(
+            "Offline companion · v1.2.0.7",
+            style = MaterialTheme.typography.labelSmall,
+            modifier = Modifier.clickable(onClick = onVersionClick),
+            color = MaterialTheme.colorScheme.primary
+        )
     }
 }
 
@@ -389,11 +435,13 @@ private fun MissionSelectionScreen(
         Spacer(Modifier.height(6.dp))
         Text("Source: ${source.title}", style = MaterialTheme.typography.labelLarge)
         Spacer(Modifier.height(16.dp))
-        if (selectedSource == "core" || selectedSource == "washington" || selectedSource == "fort") {
+        if (selectedSource == "core" || selectedSource == "washington" || selectedSource == "fort" || selectedSource == "digital") {
             val fortMissions = (1..10).mapNotNull { number -> fortMissionInfo["M$number"]?.let { Triple("M$number", it.name, "${it.difficulty} · ${it.duration}") } }
+            val digitalMissions = digitalMissionInfo.map { Triple(it.id, it.name, "${it.difficulty} · ${it.duration}") }
             val missionsToShow = when (selectedSource) {
                 "washington" -> washingtonMissions
                 "fort" -> fortMissions
+                "digital" -> digitalMissions
                 else -> coreMissions
             }
             LazyColumn(
@@ -426,6 +474,7 @@ private fun MissionSelectionScreen(
                         when (selectedSource) {
                             "washington" -> ""
                             "fort" -> "Fort Hendrix mission data will be added when its digital rulebook is provided."
+                            "digital" -> "Digital mission data from the first supplied batch will appear here."
                             else -> "Digital mission import is planned for a later step."
                         },
                         style = MaterialTheme.typography.bodyMedium
@@ -480,6 +529,209 @@ private data class FortMissionInfo(
     val tiles: List<String>,
     val objective: String,
     val startingHour: String
+)
+
+private data class DigitalMissionInfo(
+    val id: String,
+    val name: String,
+    val difficulty: String,
+    val duration: String,
+    val survivors: String,
+    val briefing: String,
+    val materials: String,
+    val tiles: List<String>,
+    val pdfPage: Int,
+    val objectives: List<String>,
+    val specialRules: List<String>
+)
+
+// Digital mission data transcribed from the user-provided Web Mission PDFs.
+private val digitalMissionInfo = listOf(
+    DigitalMissionInfo("WM1", "Amy, an Origin Story", "Medium", "45 minutes", "1 Survivor (Amy)",
+        "Amy just saw her sensei turn into a zombie and kill his boss. She had to use his precious katana against him. Now, she’s all alone in the streets, at the beginning of a zombie invasion. What’s next? Zombicide!",
+        "Zombicide: 2nd Edition", listOf("6R", "1V", "3V", "8V"), 1,
+        listOf("Solo mission, played with Amy. Take all Objectives, then reach the Exit with all Survivors; a Survivor can escape at the end of their Turn only if the Exit Zone has no Zombies."),
+        listOf("Amy starts with a Katana instead of regular Starting Equipment. Place Blue and Green Objectives randomly among Red Objectives, facedown; add Walkers in the indicated Zones.", "All doors are unlocked and can be opened without door-opening equipment. Each Objective gives 5 AP. The Green Objective allows Amy to drive the Pimpmobile; driving through a Zone with 4+ Zombies adds a Noise token that remains, and 3 Noise tokens cause the car to crash and the Mission to fail. The Blue Objective adds a random Survivor with no Equipment; Amy may immediately trade with them for free.", "Each Pimpweapon Crate gives a random available Pimpweapon; the Survivor may reorganize their inventory for free.")),
+    DigitalMissionInfo("WM2", "Burn the Alley!", "Hard", "90 minutes", "Not specified",
+        "You found something rather unusual. It doesn’t matter how many zombies you kill, more and more keep coming from the same street. Maybe a bomb will block the alley so you can avoid being overwhelmed.",
+        "Zombicide: 2nd Edition", listOf("8R", "7R", "2V", "3V", "4V", "1V"), 2,
+        listOf("Destroy the Green Spawn Zone using the firebomb; kill an Abomination (or more); take all Red Objectives. Accomplish these Objectives in any order."),
+        listOf("Place an Abomination of your choosing in the indicated Zone.", "Never-ending spawn: each killed Zombie goes into a special reserve beside the Green Spawn Zone. Before regular spawning, that Zone spawns Walkers equal to half the reserve, then the reserve returns to the regular Zombie reserve; the Green Spawn Zone also spawns normally.", "The Green Objective is a firebomb. A Survivor taking a Red Objective may gain 5 AP or remove up to 5 Zombies from the special reserve. A Survivor holding the firebomb may discard it for free within Range 0–1 of the Green Spawn Zone to remove that Spawn Zone permanently and end the never-ending spawn rule.", "Each Pimpweapon Crate gives a random available Pimpweapon; the Survivor may reorganize their inventory for free.")),
+    DigitalMissionInfo("WM3", "Doug, an Origin Story", "Hard", "45 minutes", "1 Survivor (Doug)",
+        "After his office gets surrounded by zombies, Doug has only one plan in mind: save his client, hopefully find more survivors, and get out of the building alive.",
+        "Zombicide: 2nd Edition", listOf("1R", "9V", "8R", "5V"), 3,
+        listOf("Solo mission, played with Doug. Take all Objectives, then reach the Exit with all Survivors; a Survivor can escape at the end of their Turn only if the Exit Zone has no Zombies."),
+        listOf("Place the Blue Objective randomly among Red Objectives, facedown. Tile 9V receives no Pimpweapon Crate. Place open and closed doors in the indicated Zones. Doug starts with a Sub-MG and Fire Axe instead of regular Starting Equipment; add Walkers in indicated Zones.", "Closed doors isolate parts of the building for Zombie spawning purposes only. Each Objective gives 5 AP. The Blue Objective adds a random Survivor with no Equipment; Doug may immediately trade with them for free.", "Doug’s Companion is the Client. Their Leader cannot Move more than twice per Turn and may draw 2 cards when Searching, choose 1 and discard the other, but a Walker immediately spawns in that Zone. Each time Doug kills at least 1 Zombie with a Sub-MG Ranged Action, he gains a free Melee Action before the end of his Turn; this can occur multiple times.", "Each Pimpweapon Crate gives a random available Pimpweapon; the Survivor may reorganize their inventory for free.")),
+    DigitalMissionInfo("WM4", "All Systems Online", "Hard", "120 minutes", "Not specified",
+        "Hey, this old antenna looks like it’s still working! We could set up a local communication network with this. However, we will need to activate two different circuits at the same time for it to work. We’re gonna need a lot of teamwork for this mission. There’s no time to waste. Let’s get this system started!",
+        "Zombicide: 2nd Edition", listOf("8V", "6V", "5V", "9V", "4V", "7V"), 4,
+        listOf("Find the Blue and Green Objectives. At the same time, 3 Survivors must be in the Zone containing the Blue Objective and 3 Survivors must be in the Zone containing the Green Objective. Then reach the Exit with all Survivors; a Survivor may escape at the end of their Turn only if the Exit Zone has no Zombies."),
+        listOf("Place Blue and Green Objectives randomly among Red Objectives, facedown. There is no Survivor Starting Zone: players choose a different Street Zone for each Survivor. Some rooms are isolated by doors and count as separate buildings for Zombie spawning purposes only.", "Once found, the Blue and Green Objectives cannot be taken. After completing the “Now!” objective, remove both tokens; each Survivor earns 10 AP. Each Red Objective gives 5 AP to each Survivor.")),
+    DigitalMissionInfo("WM5", "Ned, an Origin Story", "Medium", "45 minutes", "1 Survivor (Ned)",
+        "Ned lost the keys to his bunker. After spending a lot of time trying to find them, he received a mysterious note: “I found a large set of keys. If you are the owner, come find me!”",
+        "Zombicide: 2nd Edition", listOf("3V", "4V", "5V", "6V"), 5,
+        listOf("Solo mission, played with Ned. Take the Green Objective, then reach the Exit Zone with Ned and another Survivor; they may escape at the end of their Turn only if the Exit Zone has no Zombies."),
+        listOf("Place Blue and Green Objectives randomly among Red Objectives, facedown. Pick a random Survivor ID Card except Ned’s; that Survivor starts in the Starting Zone as a Companion, and Ned is their Leader. Some rooms isolated by doors count as separate buildings for Zombie spawning purposes only.", "Doors can be opened without door-opening equipment. Each Objective gives 5 AP; taking the Green Objective also allows the Survivor to reorganize their inventory for free.", "Taking the Blue Objective adds the Survivor set aside during Setup, with no Equipment. Ned may trade with them for free; the additional Survivor always plays after Ned.", "Each Pimpweapon Crate gives a random available Pimpweapon; the Survivor may reorganize their inventory for free.")),
+    DigitalMissionInfo("WM6", "The Bunnylympics", "Medium", "90 minutes", "Not specified",
+        "Bunny G challenged his friends to a game he called the Bunnylympics. He has a secret list with secret tasks fit for real heroes. He will reveal the list... as soon as he remembers what he wrote, because he lost the list. And the key to the shelter, too! (Don’t tell Ned.)",
+        "Zombicide: 2nd Edition", listOf("1R", "2R", "3V", "6V", "8R", "9R"), 6,
+        listOf("Accomplish at least 3 Bunny challenges by taking Red Objectives (the challenge can be increased to 4 or 5 for greater difficulty), then reach the Exit with all Survivors. A Survivor may escape at the end of their Turn only if the Exit Zone has no Zombies."),
+        listOf("Place a Red Objective in the building on tile 1R, then place the Blue Objective randomly among the remaining Red Objectives, facedown. Tile 1R has Blue, Green, and Red Doors.", "The Police Car can be driven. When searching it, draw until a weapon card appears and discard the other cards; Aaahh!! spawns a Walker and interrupts the Search. Each time a Survivor takes a Pimpweapon Crate, roll a die (Lucky may reroll once); the result determines the reward.", "Taking the Blue Objective gives 5 AP and activates the Blue Spawn Zone, and the Blue Door can be opened. Throwing a Molotov at the active Blue Spawn Zone disables it; remove its Spawn token.", "Taking a Red Objective assigns a Bunny challenge: roll a die and reroll if that challenge has already been completed. Challenges can run concurrently. Red Objectives give no AP; completing a challenge gives 5 AP to all Survivors. The six challenges cover eliminating an Abominacop, rallying a Companion, eliminating 10 Zombies with the Police Car, removing 10 chosen tokens from a Zone, filling all Survivor inventories, and finding the Green Objective after a Runner is eliminated on a die roll of 6. Completing the last challenge allows the Green Door to open.")),
+    DigitalMissionInfo("WM7", "Chasing Nightmares", "Medium", "120 minutes", "Not specified",
+        "As brave and bold as they are, the kids confessed that they still have nightmares about the zombies, especially Abominations. Indeed, most of them are truly monstrous, and, well, sometimes they give the adults the heebie-jeebies too! Having the soul of a warrior, Tiger Sam suggested we face our own fears. We accepted the challenge and are now heading to the most infested district in town. I hope this is not another bad dream!",
+        "Zombicide: 2nd Edition", listOf("1V", "2V", "5R", "7V", "8R", "9R"), 8,
+        listOf("Kill your fears: eliminate at least 4 Abominations with different names. Each Survivor has an Objective token. This Mission uses the Abomination Fest rules (rulebook, p. 30)."),
+        listOf("Place Blue and Green Objectives randomly among the Objectives, facedown. Each Objective gives 5 AP. Place the token on the Survivor’s Dashboard; it does not use an inventory slot. A Survivor gains Roll 6: +1 Damage while they have one or more Objective tokens. Only Tiger Sam can trade Objective tokens like Equipment cards.", "Taking a Red Objective also spawns an Abomination on the nearest active Spawn Zone. Taking the Blue or Green Objective activates the Spawn Zone of the corresponding color, then removes an active Spawn Zone token of the player’s choice, except the Starting Spawn Zone token.", "Each Pimpweapon Crate gives a random available Pimpweapon; the Survivor may reorganize their inventory for free. The Police Car can be driven; when searching it, draw until a weapon card appears and discard the other cards. Aaahh!! spawns a Walker and interrupts the Search.")),
+    DigitalMissionInfo("WM8", "Common Enemies", "Hard", "120 minutes", "Not specified",
+        "Old rivals have reignited their war during the zombie apocalypse, leaving the streets on fire and Survivors stranded in a building surrounded by Zombies.",
+        "Zombicide: 2nd Edition", listOf("1V", "2V", "3V", "5R", "6R", "7V"), 1,
+        listOf("Rescue the cop and the thug by taking the Green Objective. Then reach the Exit with all Survivors; a Survivor may escape at the end of their Turn if the Exit Zone has no Zombies."),
+        listOf("Survivors cannot enter or cross Zones containing car tokens; Zombies are unaffected. Cars cannot be driven or searched.", "Each Objective gives 5 AP. Taking a Red Objective also gives a Fire Extinguisher token, which uses no inventory slot. Spend 1 Action at Range 1 from a car to discard the token and car, allowing the Zone to be entered or crossed normally.", "The Blue Door cannot open until the Blue Objective is taken; then the Blue Spawn Zone activates and the Spawn Zone token next to the Starting Zone is removed. The Green Door cannot open until the Green Objective is taken; then the Green Spawn Zone activates and the Spawn Zone token between tiles 2V and 6R is removed.", "Each Pimpweapon Crate gives a random available Pimpweapon; the Survivor may reorganize their inventory for free. Optional: when the Blue Door opens, spawn Zombies, then place 2 unchosen Survivor miniatures in the Green Objective Zone as Companions to rally.")),
+    DigitalMissionInfo("WM9", "The Great Fire", "Very Hard", "90 minutes", "Not specified",
+        "A fire has broken out in this building. Good news is it’s been evacuated and is probably full of goodies. Bad news is the fire is spreading fast. Get in and grab everything as quickly as you can!",
+        "Zombicide: 2nd Edition", listOf("1R", "2R", "7V", "9V"), 1,
+        listOf("Recover as many Pimpweapons as possible before the building is engulfed in flames. Then reach the Exit with all Survivors. A Survivor may escape through the Exit Zone at the end of their Turn only if there are no Zombies in it."),
+        listOf("Set aside all Aaahh!! cards from the Pimpweapon deck. Closed rooms: doors isolate closed parts of the central building; these parts count as separate buildings for Zombie spawning purposes only. Board games, books, and plushies: each Objective gives 5 AP to the Survivor who takes it. Flimsy doors: Door Actions do not require Door-opening Equipment.", "The fire spreads: at the beginning of the first End Phase, place a Noise token in corner 1 of the middle Zone, as shown on the map. This special Noise token is a fire marker and is not removed during subsequent End Phases. At the beginning of each later End Phase, add a fire marker to all corners of the middle Zone that already have at least 1 fire marker. Then place 1 Noise token as a fire marker in the next corner clockwise that does not already have one. A corner cannot have more than 3 fire markers. When a corner reaches 3 fire markers, all building Zones on its tile are engulfed in flames and cannot be entered; any Survivor standing in such a Zone is eliminated and the Mission is lost.", "This smoke: during each End Phase, Survivors without the Scavenger or Tough Skill suffer 1 Damage if they stand in a Building Zone on a tile with 1 or 2 fire markers.", "Pimp my day: count the Pimpweapons found by all Survivors at the end of the game. 4: Trailblazer! Complete victory. 3: Not so hot. 1–2: You’re fired.")),
+    DigitalMissionInfo("WM10", "Josh, an Origin Story", "Hard", "30 minutes", "1 Survivor (Josh)",
+        "Josh heads to the police station to find out what charges have been brought against his friends, only to discover that the streets are filled with the dead.",
+        "Zombicide: 2nd Edition", listOf("1R", "2R", "5R", "8R"), 4,
+        listOf("Find and take the Green Objective. Then reach the Exit with all Survivors; a Survivor may escape at the end of their Turn if the Exit Zone has no Zombies."),
+        listOf("Prepare a Dashboard for a Survivor of the player's choice, set it aside with their miniature and ID Cards, and equip them with a Baseball Bat. Shuffle the Blue and Green Objectives among Red Objectives, facedown. Josh starts with a Fire Axe and Pistol.", "The Police Car blocks Lines of Sight and Movement in its Zone and cannot be driven or searched. Each Objective gives 5 AP.", "When the Green Objective is taken, place the set-aside Survivor miniature in that Zone; the player now controls both Survivors. The Blue Spawn Zone is active from the start and becomes inactive when the Blue Objective is taken.", "Zombies may open doors along their route. If this opens a building for the first time, Dark Zones inside spawn at 1 Danger Level above the current level, up to Red.")),
+    DigitalMissionInfo("WM11", "A Stupid Trick", "Hard", "60 minutes", "Not specified",
+        "Clear the abandoned house of the crawling Walkers left by old traps, recover the traps, and get out safely.",
+        "Zombicide: 2nd Edition", listOf("2R", "3R", "4R", "5R", "6R", "7V"), 5,
+        listOf("Recover all Traps by taking all Objectives. There must be no Walkers in the buildings (other Zombie types are ignored). Then exit with all Survivors; a Survivor may escape at the end of their Turn if the Exit Zone has no Zombies."),
+        listOf("Place Blue and Green Objectives randomly among the Objectives, facedown. Each Objective gives 5 AP.", "Red Objectives are triggered traps: roll a die when taking one. Odd: nothing happens. Even: place that many Walkers laying down as Crawlers; they cannot Move but can Attack and hinder Survivor Move Actions as usual.", "Taking the Blue or Green Objective gives 5 AP and triggers the luring mechanism: immediately resolve a Spawn in each Spawn Zone, then resume the Survivor's Turn.", "Each Pimpweapon Crate gives a random available Pimpweapon; the Survivor may reorganize their inventory for free.")),
+    DigitalMissionInfo("WM12", "Ostara’s Flash Mob", "Hard", "30 minutes", "Not specified",
+        "Ostara proposes a sudden raid on a huge warehouse full of boxes: grab the Pimpweapon Crates and escape before the Zombies react.",
+        "Zombicide: 2nd Edition", listOf("1V", "2V", "3V", "4V", "7V", "9V"), 6,
+        listOf("Get all Pimpweapon Crates. Then exit with all Survivors through any eligible street Zone on the edge of the board, provided it has no Zombies."),
+        listOf("Split Survivors as evenly as possible between the 3 Starting Zones.", "When a door leading into the U-shaped storage building is opened, all other doors of that building open and the Green and Blue Spawn Zones become active.", "Cars cannot be driven. Each Pimpweapon Crate gives a random available Pimpweapon; the Survivor may reorganize their inventory for free. After all Pimpweapon Crates are taken, any street Zone on the board edge is an Exit Zone.")),
+    DigitalMissionInfo("WM13", "You Got the Keys?", "Medium", "30 minutes", "Not specified",
+        "Search a police station for supplies and the keys needed to get a seemingly pristine Police Car running.",
+        "Zombicide: 2nd Edition", listOf("3R", "5R", "6R", "7V"), 7,
+        listOf("Reach the Exit Zone with all Survivors and the Police Car. A Survivor may escape at the end of their Turn, or as a Passenger in the Police Car, if the Exit Zone has no Zombies."),
+        listOf("Each Red Objective gives 5 AP. The Red Door cannot be opened.", "The Green Door cannot open until the Green Objective is taken. When the Green Door opens, the Green Spawn Zone activates; taking the Green Objective gives all Survivors 5 AP.", "The Blue Door cannot open until the Blue Objective is taken. Taking it gives all Survivors 5 AP; the Blue Objective is Equipment but takes no inventory slot and can be traded. The Police Car can only be driven after its owner, carrying the Blue Objective, enters it as Driver or Passenger.", "When searching the Police Car, draw cards until a weapon appears, discarding other cards. An Aaahh!! card interrupts the Search and spawns a Walker.")),
+    DigitalMissionInfo("WM14", "The Ultimate Christmas Dinner", "Medium", "30 minutes", "Not specified",
+        "Prepare a Christmas feast by finding a frozen turkey, rice, and canned food, then get out with all Survivors.",
+        "Zombicide: 2nd Edition", listOf("1V", "5V", "7V", "9R"), 1,
+        listOf("Take the Green Objective (the frozen turkey), find a Bag of Rice card and a Canned Food card, then reach the Exit with all Survivors. A Survivor may escape at the end of their Turn if the Exit Zone has no Zombies."),
+        listOf("Shuffle the Blue Objective among the Red Objectives, facedown. Remove all Bag of Rice and Canned Food cards from the Equipment deck; set aside one of each and two Aaahh!! cards to form the Christmas Gifts deck.", "Each Objective gives 5 AP and lets the Survivor draw the top Christmas Gift for free; it occupies a Backpack slot and cannot be removed or traded.", "The first Aaahh!! drawn places a Walker as usual, then an Abomination on the Spawn Start. Opening the Red Door on tile 5V activates the Green Spawn Zone. The Blue Door requires the Blue Objective; the Green Door requires the Green Objective. The Green Objective occupies an Inventory Slot and can be traded.")),
+    DigitalMissionInfo("WM15", "Saint Sylvester Marathon", "Hard", "45 minutes", "Not specified",
+        "Race through streets full of fast Zombies to collect isotonic drinks and escape before too many Runners leave the board.",
+        "Zombicide: 2nd Edition", listOf("2R", "3V", "5R", "8R"), 2,
+        listOf("Take all Objectives, then reach the Exit with all Survivors. The Exit must contain no Zombies and no Abominations."),
+        listOf("Place an Abomination and Runners in the Zones indicated on the map. Each Objective gives 5 AP to all Survivors.", "Abominations move 2 Zones instead of 1. After each Spawn Step, add one Runner to each Spawn Zone. Runners target the Exit and are removed when they reach it; if 6 or more Runners escape, the Mission is lost.", "The Survivor taking the last Objective may take any card from the Equipment deck, then reorganize their inventory for free. Shuffle the deck afterwards.")),
+    DigitalMissionInfo("WM16", "Red Light, Green Light!", "Hard", "45 minutes", "Not specified",
+        "Eliminate a rooted, evolving Abomination before its presence drives nearby Zombies into a frenzy.",
+        "Zombicide: 2nd Edition", listOf("1V", "3V", "5V", "6V", "8V", "9V"), 3,
+        listOf("Kill the Abomination, then reach the Exit with all Survivors. A Survivor may escape at the end of their Turn if the Exit Zone has no Zombies."),
+        listOf("Shuffle the Blue and Green Objectives among the Red Objectives, facedown. Place an Abomination in the indicated Zone and set aside all Abomination cards from the Zombie deck.", "Red doors are locked and cannot be opened. Each Objective gives 5 AP; taking an Objective places a Red Zombie Spawn token in that Zone. Blue and Green Objectives are placed on a Dashboard, take no Inventory slot, and can be traded. Taking either activates the Blue Spawn Zone, which always spawns at Blue Danger Level.", "At the end of the Players Phase, Zombies of the same type as the last drawn Zombie card gain an extra Activation for each Survivor in Line of Sight of the Abomination. The Abomination has no Actions and cannot move or attack. A Survivor may spend an Action to use a Molotov and discard both Blue and Green Objectives to kill it; the killer gains 5 AP.")),
+    DigitalMissionInfo("WM17", "Elle, an Origin Story", "Very Hard", "30 minutes", "1 Survivor (Elle)",
+        "Elle searches a maze of dead ends for a missing Kid Survivor and a rumored secret lair.",
+        "Zombicide: 2nd Edition", listOf("1R", "3V", "4V", "8R"), 4,
+        listOf("Solo mission played with Elle. Find the Companion (Green Objective) and find the Exit Zone in any order, then reach the Exit with Elle and the Companion. They may escape at the end of their Turn if the Exit Zone has no Zombies."),
+        listOf("Elle starts with a Fire Axe and a Pistol. Choose any Kid Survivor, set aside their miniature and ID card, and shuffle the Green and Blue Objectives among the Red Objectives, facedown. Each Objective gives 5 AP.", "During each Spawn Step, roll a die for each Spawn Zone before drawing a card: on 1–2, spawn normally; on 3+, that Zone does not spawn, but if the tile's building is open, spawn 1 Walker in each of its Dark Zones.", "When the second Red Objective is taken, place the Exit token in that Zone. Taking the Green Objective places the Kid Survivor in that Zone as a Companion, with Elle as Leader. The Blue Objective gives Elle either a Plenty of Bullets or Plenty of Shells card; she may reorganize her inventory for free, then shuffle the Equipment deck.")),
+    DigitalMissionInfo("WM18", "Wanda, an Origin Story", "Hard", "30 minutes", "2 Survivors (Wanda & Ned)",
+        "Wanda and Ned gather weapons and food after escaping a diner overrun by Zombies.",
+        "Zombicide: 2nd Edition", listOf("2R", "3V", "4R", "5R", "9R"), 5,
+        listOf("Take at least 2 Red Objectives and gather and keep at least 2 food cards (Bag of Rice, Canned Food, or Water), then reach the Exit with both Survivors. A Survivor may escape at the end of their Turn if the Exit Zone has no Zombies."),
+        listOf("Ned starts with a Sniper Rifle and Wanda with a Machete; there is no additional Starting Equipment. Shuffle the Green Objective among the Red Objectives, facedown. Set aside all Chainsaw cards and 1 Flashlight card, and place Walkers in the indicated Zones. Tile 9R has no Objective token or Pimpweapon Crate.", "Each Objective gives 5 AP. Closed Red doors cannot be opened. The broken Pimpmobile cannot be driven and can be searched once per Survivor: Wanda gets a Chainsaw and Ned gets a Flashlight.", "The Green Spawn Zone becomes active as soon as the Green Objective is taken.")),
+    DigitalMissionInfo("WM19", "A New Dawn – Part I", "Hard", "30 minutes", "1 Survivor initially",
+        "A lone Survivor searches for other living people and hopes to build a small community.",
+        "Zombicide: 2nd Edition", listOf("2V", "4V", "5V", "8V"), 6,
+        listOf("Take the Green and Blue Objectives, then reach the Exit with all Survivors and Companions. A Survivor may escape at the end of their Turn if the Exit Zone has no Zombies."),
+        listOf("Shuffle the Green and Blue Objectives among the Red Objectives, facedown. Remove all Aaahh!! cards from the Pimpweapons deck. The starting Survivor has a Fire Axe and Pistol. Choose an additional Survivor and prepare their Dashboard with a Baseball Bat and Pistol from the Starting Equipment deck.", "Doors inside buildings isolate parts of them, treated as separate buildings for Zombie spawning only. Each Objective gives 5 AP.", "Taking the Green Objective places the additional Survivor in its Zone with the same AP as the starting Survivor; they can be played immediately after the starting Survivor that Game Round. Taking the Blue Objective places a random Survivor in its Zone as a Companion. During each ensuing End Phase, roll a die; on 1–3, spawn a Walker in an adjacent Zone with an open route and Line of Sight to the Companion.")),
+    DigitalMissionInfo("WM20", "A New Dawn – Part II", "Hard", "30 minutes", "2 Survivors",
+        "Two Survivors and Rod search the Locusts’ former shelter for a map hidden in a vault, then escape.",
+        "Zombicide: 2nd Edition", listOf("1R", "5R", "7V", "6V"), 1,
+        listOf("Take the Blue Objective, then reach the Exit with all Survivors and Companions. A Survivor or Companion may escape at the end of their Turn if the Exit Zone has no Zombies."),
+        listOf("Shuffle the Blue Objective among the Red Objectives, facedown. Survivors start with a Fire Axe, Baseball Bat, and 2 Pistols, distributed as desired. Choose a Survivor to lead Rod, a random Companion, and place Rod in that Leader’s Zone.", "Indoor Spawn Zones are active only while at least one Survivor is in the building. If Rod is inside too, spawn one Danger Level higher, up to Red. The Green Door is blocked. Doors inside buildings isolate areas for Zombie spawning purposes only.", "Each Objective gives 5 AP. The Blue Objective can only be taken while Rod is in the same Zone; if found without him, leave it revealed and spend another Action to take it, with no AP gained. Taking the Blue Objective activates the Blue Spawn Zone.")),
+    DigitalMissionInfo("WM21", "A New Dawn – Part III", "Hard", "30 minutes", "2 Survivors initially",
+        "After escaping the Locusts, the Survivors become separated and must reunite, gather allies, and get away.",
+        "Zombicide: 2nd Edition", listOf("8V", "9V", "4R", "3R", "2V", "1V"), 2,
+        listOf("Take the Blue and Green Objectives, then reach the Exit with all Survivors and Companions. A Survivor or Companion may escape at the end of their Turn if the Exit Zone has no Zombies."),
+        listOf("Do not place Objectives on tiles 3R and 4R. Place Blue and Red Objectives on tiles 8V and 9V, and Green and Red Objectives on tiles 2V and 1V, shuffled within each pair. Place a Survivor in each Starting Zone; each starts at Yellow Danger Level, with a Fire Axe and Pistol, and suffers 1 Wound. Place a Companion in each Starting Zone and make the Survivor there their Leader. Set aside 2 Survivors and their Dashboards with random remaining Starting Equipment.", "The Red Door is blocked. Each Objective gives 5 AP. When the Blue or Green Objective is taken, place a new Survivor in that Zone; they can be played immediately after the Survivor who found them. The Pimpmobile opens the Blue and Green Doors immediately when it enters their Zones.", "The Green Spawn Zone is inactive until the Blue or Green Door is opened. Draw a Zombie Card for it when activated; it remains active thereafter.")),
+    DigitalMissionInfo("WM23", "The Agatha-pocalypse", "Medium", "120 minutes", "Not specified",
+        "Help Agatha find her treasures while keeping her calm and eventually defeat the Abominacop.",
+        "Zombicide: 2nd Edition", listOf("2V", "9V", "5R", "3V", "4R", "6V"), 3,
+        listOf("Take the Blue and Green Objectives, then eliminate the Abominacop in the meat grinder’s Zone."),
+        listOf("Remove the Abominacop from the Abomination deck. Remove a Molotov from the Equipment deck and place it in the Pimpmobile, replacing its Pimpweapon. The Blue Objective is on tile 2V; the Green Objective is on tile 3V, outside the Objective Zone. A Survivor starts with a Noise token on their Dashboard to represent Agatha; it counts as an additional Noise token, can be traded like Equipment, and grants Taunt to its holder. Set aside 2 Agatha counters.", "Remove one Agatha counter during each End Phase. When the pool is empty, Agatha cries: her holder must use Taunt once each Turn if possible, remove any Abomination from the board and place the Abominacop in the Police Car’s Zone, and activate the Blue Spawn Zone. Once per game, a Survivor holding Agatha in the bathtub Zone may spend 1 Action to add 3 counters.", "Each Objective gives 5 AP and adds 1 Agatha counter. Once both colored Objectives are taken, counters can no longer be gained or lost. The meat grinder Zone eliminates all Zombies in it for 1 Action; it is the only way to eliminate the Abominacop. Only doors marked with Door tokens can be opened.", "The Police Car cannot be driven until the Abominacop is on the board; when searched, draw until a weapon appears, discarding other cards. The Pimpmobile cannot be driven and has no Pimpweapon; the first Survivor searching it takes the hidden Molotov. Each Pimpweapon Crate gives a random available Pimpweapon.")),
+    DigitalMissionInfo("WM24", "The Last Passage", "Hard", "120 minutes", "Not specified",
+        "Gather fuel to activate the generators, open the reinforced doors, and escape through the only passage out of the district.",
+        "Zombicide: 2nd Edition", listOf("8V", "3R", "7V", "1V", "6R", "4V", "5R", "9R", "2V"), 5,
+        listOf("Open the doors by taking the Blue and Green Objectives. Then reach the Exit with all Survivors; a Survivor may escape at the end of their Turn if the Exit Zone has no Zombies."),
+        listOf("The Blue Objective is on tile 8V and the Green Objective on tile 2V. Each Pimpweapon Crate gives a random available Pimpweapon and allows free inventory reorganization.", "Each Objective gives 5 AP. Red Objectives represent fuel: a Survivor may take a Blue or Green Objective only while carrying at least 3 Red Objectives, and must discard 3 Red Objectives to do so. The Blue Spawn Zone activates when the Blue Objective is taken, and the Blue Door can only be opened then. The Green Spawn Zone and Green Door work the same way for the Green Objective.", "The Pimpmobile can be driven and contains one Pimpweapon Crate. As soon as a Survivor interacts with it by taking the crate or getting in, place 4 Noise tokens on it; they move with the car and one is removed during each End Phase. When the last is removed, resolve a Molotov effect in the car’s Zone and remove the car token.")),
+    DigitalMissionInfo("WM25", "Creepy Corners", "Hard", "45 minutes", "6 Survivors",
+        "Collect food from an underground passage and reach the subway station before the horde overwhelms the Survivors.",
+        "Zombicide: 2nd Edition", listOf("7R", "5R", "8R", "6R"), 7,
+        listOf("Take all Objectives, then reach the Exit with all Survivors. A Survivor may escape at the end of their Turn if the Exit Zone has no Zombies."),
+        listOf("There is no Objective token on tile 8R, which contains the Exit. Each Red Objective gives 5 AP to all Survivors; place it on the taker’s Dashboard, where it occupies an Equipment slot and can be traded. If inventory is full, discard an Equipment card to make room.", "The closed Red Doors cannot be opened. The Blue Door on tile 6R and Green Door on tile 8R are linked by an underground tunnel: they are adjacent for movement but do not share Line of Sight. Opening the Blue Door also opens the Green Door, triggers a Zombie Spawn in tile 8R’s Dark Zone and the Blue Spawn Zone, and activates the Blue Spawn Zone. Each Pimpweapon Crate gives a random available Pimpweapon.")),
+    DigitalMissionInfo("WM26", "A Quiet Place", "Hard", "60 minutes", "6 Survivors",
+        "Search intact houses for rare supplies, then escape quietly as the Zombies converge on the area.",
+        "Zombicide: 2nd Edition", listOf("3V", "1R", "4V", "7R"), 8,
+        listOf("Take all Objectives, then reach the Exit with all Survivors. A Survivor may escape at the end of their Turn if the Exit Zone has no Zombies."),
+        listOf("Doors between tiles 1R and 7R isolate parts of the building for Zombie spawning purposes. Each Objective gives 5 AP and occupies an Equipment slot on the taker’s Dashboard; if their inventory is full, discard an Equipment card to make room.", "Whenever a Survivor makes Noise, place a Noise token beside the closest Red Spawn Zone that does not already have one. If all Red Spawn Zones have a Noise token, ignore this rule. These tokens do not affect Zombie routing. During the next Zombies’ Phase, draw Zombie Cards for the Green Spawn Zone and each Red Spawn Zone with a Noise token, then remove those Noise tokens during the following End Phase.")),
+    DigitalMissionInfo("WM27", "The Dead Elite Squad", "Very Hard", "120 minutes", "6 Survivors",
+        "A standalone Fort Hendrix side mission: rescue an elite soldier trapped in barracks, eliminate the sniper squad, and escape.",
+        "Zombicide: 2nd Edition and Fort Hendrix", listOf("16R", "17V", "18V", "19V", "20R", "21R"), 1,
+        listOf("Rescue the elite soldier, eliminate all Shooter Walkers on the board and in reserve, and find a secure Exit, in any order. Then reach the Exit with all Survivors and the elite soldier. The game is lost if any Survivor or the elite soldier is eliminated."),
+        listOf("Starting hour: 10am. Shuffle Blue and Green Objectives among the Red Objectives, facedown. Place 3 Shooter Walkers as indicated and use Penny's miniature as the elite soldier. Use Fort Hendrix Advanced Equipment decks.", "Each Objective gives 5 AP. After both colored Objectives are taken, Shooter Walkers are removed from the game instead of returning to reserve. Whenever a Red Objective is taken, roll a die: on 4+, place or move the Exit to that Zone. If no Exit was placed when the last Red Objective is taken, place it in the Survivor Starting Zone.", "A Survivor may spend 1 Action in the elite soldier's Zone to become her Leader. Once during each of their Turns, the Leader may eliminate up to 2 Zombies in Line of Sight, except Abominations and Shooter Walkers, ignoring Dark Zone and Nighttime rules; this earns no AP and generates 1 Noise per Zombie. The elite soldier is immune to Friendly Fire. Closed doors isolate parts of buildings for spawning purposes. Each Epic Weapon Crate gives a random available Epic Weapon.")),
+    DigitalMissionInfo("WM28", "A Risky Deal", "Hard", "90 minutes", "6 Survivors",
+        "A standalone Washington, Z.C. side mission to rescue two Secret Agents from the White House and escort them to the secret presidential bunker.",
+        "Zombicide: 2nd Edition and Washington Z.C.", listOf("10R", "11R", "12R", "13V", "14V", "15V"), 3,
+        listOf("Rescue both Secret Agents and find the entrance to the Secret Presidential Bunker. Then reach the Exit with all Survivors and both agents; they may escape at the end of their Turn if the Exit Zone has no Zombies. Losing any Survivor or agent loses the game."),
+        listOf("Starting hour: 11am. Shuffle Blue and Green Objectives among Red Objectives, facedown. Players divide Survivors equally between the two Starting Zones. Taylor and the President miniatures are the Secret Agent Companions. Use Washington Z.C. Advanced Equipment decks.", "The two floor boards are separate: highlighted stair Zones are adjacent for movement but do not share Line of Sight. Spawn Zones are active only if at least one Survivor is on that floor.", "Each Objective gives 5 AP. Blue and Green doors cannot open until their matching Objectives are taken. Once both colored doors are open, roll a die at each End Phase: on 1–4, place the Exit in the indicated Zone and stop rolling; on 5–6, spawn a Runner on each active Spawn Zone. A Survivor may spend 1 Action in a Secret Agent's Zone to become their Leader. The President's Leader gains Spare Parts; Taylor's Leader gains Night Vision. The Companions cannot suffer Friendly Fire. Each Epic Weapon Crate gives a random available Epic Weapon.")),
+    DigitalMissionInfo("WM29", "The Santa Hellpers", "Medium", "60 minutes", "Not specified",
+        "Help Santa deliver six Christmas gifts before dawn, then escape.",
+        "Zombicide: 2nd Edition", listOf("1R", "2R", "3V", "4V", "5R", "9R"), 5,
+        listOf("Deliver 6 Christmas Gifts by placing all Survivors' Red Objectives in Objective Zones. Then reach the Exit with all Survivors; the Exit Zone must have no Zombies."),
+        listOf("Do not place Objective tokens or Epic Weapon Crates on the board or in the Muscle Car. Each Survivor starts with one non-tradeable Red Objective. Remove all Aaahh!! cards from the Epic Weapon deck.", "A Survivor may spend 1 Action to place their Red Objective in an Objective Zone with no Objective and no Zombie; they gain 5 AP and the Objective cannot be taken.", "At each End Phase, while Epic Weapons remain available, roll a die and place a random Epic Weapon card in the correspondingly numbered Zone; it can be taken like an Objective. When no Epic Weapons remain, roll once more and place the Exit instead. The Muscle Car can be driven and has no Epic Weapon Crate. Optional difficulty rule: if no Epic Weapon card can be drawn during an End Phase while this rule is active, the game is lost.")),
+    DigitalMissionInfo("WM30", "A New Dawn – Part IV", "Hard", "60 minutes", "6 Survivors",
+        "Split into two teams to clear the Locust shelter, recover supplies, and eliminate the Zombies on both separate maps.",
+        "Zombicide: 2nd Edition", listOf("1V", "2V", "3V", "6R", "7R", "8R"), 6,
+        listOf("Take all Red Objectives, then take both Green and Blue Objectives. Win when no Zombies remain on either map at the end of a Player's Phase."),
+        listOf("Play on two separate boards with no connection or Line of Sight. Place 3 Survivors in each Starting Zone; each group must have a Fire Axe from the Starting and regular Equipment decks. Place 8 Walkers and 4 Runners as shown.", "Red Objectives give 5 AP. Each Epic Weapon Crate gives a random available Epic Weapon. Blue and Green Spawn Zones are active from the start.", "The Blue Door cannot be opened until all Red Objectives on its map have been taken. The Green Door has the same restriction for its map; the Red Door cannot be opened. When a Red Objective is taken, immediately draw a Zombie Card for a Red Spawn Zone on the other map, then remove that Spawn token. When a Blue or Green Objective is taken, draw a Zombie Card for the matching colored Spawn Zone, then remove that Spawn token.")),
+    DigitalMissionInfo("WM31", "A New Dawn – Part V", "Medium", "60 minutes", "6 Survivors",
+        "Search an abandoned warehouse for supplies while Rod's trap and the Zombies threaten the team.",
+        "Zombicide: 2nd Edition", listOf("5V", "6V", "7V", "9V"), 7,
+        listOf("Take both Red Objectives, then gain access to the Exit by opening the Blue or Green Door (or both). Finally, reach the Exit with all Survivors; the Exit Zone must have no Zombies."),
+        listOf("Shuffle the Green and Blue Objectives among Red Objectives, facedown. Place 3 Survivors in each Starting Zone; one group starts with a Fire Axe and the other with a Crowbar. Set aside a Survivor miniature without a colored base to represent Rod and place him in Zone 1.", "Doors inside buildings isolate parts of buildings for spawning purposes only. Each Objective gives 5 AP to all Survivors. Blue and Green Spawn Zones are inactive initially; when the matching Objective is taken, open the corresponding door and draw a Zombie Card for that Spawn Zone, which then becomes active.", "Rod cannot be attacked, is not a Noise token, and is never targeted by Zombies. Epic Weapon Crates and Objectives cannot be taken while Rod is in the same Zone. Survivors starting their Activation on the same tile as Rod have 1 fewer Action. During each End Phase, roll a die: on 1–4, place Rod in the corresponding numbered Zone and spawn a Zombie Card there at Blue Danger Level; on 5–6, remove Rod from the map. Each Epic Weapon Crate gives a random available Epic Weapon.")),
+    DigitalMissionInfo("WM32", "A New Dawn – Part VI", "Hard", "75 minutes", "6 Survivors",
+        "Trap Rod inside the warehouse by luring him into the highlighted Zone and locking the Green and Blue Doors.",
+        "Zombicide: 2nd Edition", listOf("1R", "2R", "3V", "4V", "7V", "9V"), 8,
+        listOf("Move Rod into the highlighted Zone, then lock the Green and Blue Doors to trap him."),
+        listOf("Shuffle Green and Blue Objectives among the Red Objectives, facedown. Set aside a Survivor miniature without a colored base to represent Rod. The building is already open; place Zombies as indicated and draw one Zombie Card for each Blue and Green Spawn Zone.", "Printed doors cannot be opened. Survivors cannot access any Street Zone except the highlighted Zone. Place 3 Walkers in the highlighted Zone at the beginning of every Spawn step.", "Objectives give 5 AP to the Survivor who takes them. The Green and Blue Doors can be locked only under the conditions described on the mission map and rules. Each Epic Weapon Crate gives a random available Epic Weapon.")),
+    DigitalMissionInfo("WM33", "Crazy Taxi", "Medium", "60 minutes", "6 Survivors",
+        "Stop a crazed taxi driver by planting explosives in the path of a constantly moving Muscle Car, then escape.",
+        "Zombicide: 2nd Edition", listOf("5V", "6V", "7V", "8V"), 1,
+        listOf("Find and plant explosives to destroy the car, and find the keys by taking the Green Objective, in any order. Then reach the Exit with all Survivors; the Exit Zone must have no Zombies."),
+        listOf("Shuffle Blue and Green Objectives among Red Objectives, facedown. Red Objectives give 5 AP to the Survivor who takes them; keep them beside the Dashboard. A Survivor carrying 2 Red Objectives may spend 1 Action in a Street Zone to plant them. When the Muscle Car enters that Zone, eliminate all Actors there and remove the car; this earns no AP.", "Taking the Blue Objective gives 5 AP to all Survivors and places a Blue Spawn token in that Zone; the Blue Spawn Zone becomes active. Taking the Green Objective gives 5 AP to all Survivors; the Green Door cannot open until it is taken.", "At the end of the Player Phase, the Muscle Car moves 4 Zones following the map arrows toward the First Spawn Zone. If it leaves the map, place it at the right-side Red Spawn Zone and continue its movement. Whenever it enters a Zone with an Actor, roll 3 dice; each 4+ deals 2 Wounds to a Survivor or 1 hit to a Zombie, with Survivors targeted first. Actors may enter its Zone freely. Red Doors cannot open; internal doors divide buildings for spawning. The Muscle Car cannot be driven and has no Epic Weapon Crate. Each Epic Weapon Crate gives a random available Epic Weapon.")),
+    DigitalMissionInfo("WM34", "Playground Time", "Medium", "120 minutes", "6 Survivors",
+        "Rescue four hidden children from the old school and find a safe exit.",
+        "Zombicide: 2nd Edition", listOf("1V", "2V", "3V", "4V", "5R", "6V", "7V", "8R", "9V"), 2,
+        listOf("Rescue the four hidden kids as Companions and find the Exit, in any order. Then reach the Exit with all Survivors; the Exit Zone must have no Zombies."),
+        listOf("Shuffle Blue and Green Objectives among Red Objectives, facedown. Place Bunny G, Lou, Ostara, and Odin in the indicated Zones without colored bases; set aside their ID cards. Each Objective gives 5 AP.", "A Survivor may spend 1 Action in a hidden kid's Zone to turn them into a Companion. Companions cannot suffer Friendly Fire. When both Blue and Green Objectives are taken, place the Exit in the Zone where the second Objective was taken.", "The Police Car can be driven. When searching it, draw cards until a Weapon card appears and discard the other cards; an Aaahh!! spawns a Walker as usual and interrupts the Search. Internal doors divide buildings for spawning purposes. Each Epic Weapon Crate gives a random available Epic Weapon.")),
+    DigitalMissionInfo("WM35", "The Annoying Parrot", "Hard", "60 minutes", "6 Survivors",
+        "Collect all Objectives, then destroy the First Spawn Zone with a Molotov to reveal the Exit and escape.",
+        "Zombicide: 2nd Edition", listOf("1V", "3V", "5R", "6V"), 4,
+        listOf("Take all Objectives, destroy the First Spawn Zone to reveal the Exit, then reach the Exit with all Survivors. The Exit Zone must have no Zombies."),
+        listOf("Shuffle Blue and Green Objectives among Red Objectives, facedown. Place a Walker, Runner, and Brute as indicated. All three Spawn Zones are active from the start. Red Objectives give 5 AP to the taker; Blue and Green Objectives give 5 AP to all Survivors.", "Each Search Action requires a die roll: on 1–4, place one Zombie matching the last drawn Zombie card in the First Spawn Zone; ignore this if the discard pile is empty. If no miniatures of that type remain, this triggers extra Activations. On 5–6, nothing happens.", "Each time an Epic Weapon is taken, draw a Zombie Card for the Blue Spawn Zone. Each time an Objective is taken, draw a Zombie Card for the Green Spawn Zone. After all Objectives are taken, a Survivor must use a Molotov targeting the First Spawn Zone; replace its token with the Exit. Doors inside buildings divide them for spawning purposes. Each Epic Weapon Crate gives a random available Epic Weapon.")),
+    DigitalMissionInfo("WM36", "Zombies Ate My Turkey!", "Special", "45 minutes", "2 Survivors",
+        "Zoe and Julio must gather food, rescue their parents, and escape in time for Thanksgiving dinner.",
+        "Zombicide: 2nd Edition", listOf("1R", "6R", "7V", "9R"), 5,
+        listOf("Reach the Exit with both Survivors carrying at least 3 Food Equipment cards (Canned Food, Bag of Rice, and Water) and at least 1 Companion. Any Survivor may escape at the end of their Turn if the Exit Zone has no Zombies. Rank the result by Companions saved: S=4, A=3, B=2, C=1."),
+        listOf("Play with only 2 Survivors. Shuffle the Green Objective among the Red Objectives, facedown. Set aside 4 Survivors as Companions and place one in each Objective Zone. Each Red Objective gives 5 AP.", "A Survivor may spend 1 Action to rescue a Companion in their Zone. Each Companion gives their Leader +1 Die: Combat in addition to any Blue Skills. A Survivor may lead multiple Companions. Losing a Companion does not cause defeat.", "When the Green Objective is taken, all Survivors gain 5 AP and the Exit token is placed in that Zone. Each Epic Weapon Crate gives a random available Epic Weapon and lets the taker search the Equipment deck for Canned Food, Bag of Rice, or Water, then reorganize for free. Doors inside buildings divide them for spawning purposes.")),
+    DigitalMissionInfo("WM37", "The Forgotten Warehouse", "Medium", "90 minutes", "6 Survivors",
+        "Search an old army warehouse for Epic Weapons, discover the special Blue Objective weapon, and escape.",
+        "Zombicide: 2nd Edition", listOf("1R", "2R", "4R", "7V", "8R", "9R"), 6,
+        listOf("Take all Epic Weapon Crates and find the REALLY Epic Weapon (Blue Objective), in any order. Then reach the Exit with all Survivors; the Exit Zone must have no Zombies."),
+        listOf("Shuffle the Blue Objective among Red Objectives, facedown. Doors inside buildings divide them for spawning purposes. Each Red Objective gives 5 AP to the taker; Blue and Green Objectives give 5 AP to all Survivors.", "The Green Door can be opened only after the Green Objective is taken. Blue and Green Spawn Zones are inactive at the start; each becomes active when its matching Objective is taken.", "When the Blue Objective is taken, draw an Epic Weapon card, ignoring any Aaahh!! cards, and give it Damage 3; place a Noise token on the card as a reminder. If the Blue Door is still closed, open it automatically. Each Epic Weapon Crate gives a random available Epic Weapon and allows free inventory reorganization.")),
+    DigitalMissionInfo("WM40", "Running Over the Dead!", "Hard", "75 minutes", "6 Survivors",
+        "Repair Uncle Clay's old Muscle Car into a road warrior, then drive through the Blue Spawn Zone and escape.",
+        "Zombicide: 2nd Edition", listOf("1V", "2R", "3R", "4V", "5V", "6V", "7V", "8V", "9V"), 7,
+        listOf("Find the Muscle Car's key (Blue Objective) and battery (Green Objective), drive over the Blue Spawn Zone, then reach the Exit with all Survivors. The Exit Zone must have no Zombies."),
+        listOf("Shuffle Blue and Green Objectives among Red Objectives, facedown. Place 3 Survivors in each Starting Zone as indicated. The Blue Spawn Zone is active from the start. The Muscle Car cannot be driven until both Blue and Green Objectives are taken.", "Taking Blue and Green Objectives gives 5 AP to all Survivors. There is no Epic Weapon Crate in the Muscle Car. Survivors may only use the Fast Drive Action while driving (move 2 consecutive Zones and perform a Car Attack). Each Red Objective gives 5 AP to the taker; keep these beside the board as the Pimped Out Pool.", "After a Car Attack, remove one Red Objective from the Pimped Out Pool for each Zombie remaining in the Car's Zone. If a Red Objective must be removed but none remain, the car breaks and the game is lost. When the Muscle Car enters the Blue Spawn Zone, replace that Spawn token with the Exit token. Doors divide buildings for spawning purposes."))
 )
 
 private val fortMissionInfo = mapOf(
@@ -615,20 +867,23 @@ private val coreMissionInfo = mapOf(
         listOf("Place the Blue and Green Objectives randomly among the Red Objectives, facedown. Each Objective grants 5 Adrenaline Points; taking a Blue or Green Objective also grants a Molotov.", "Cars can be driven. When searching the Police Car, draw until a weapon card is drawn, with Aaahh!! interrupting the Search.", "Each Epic Weapon Crate grants a random available Epic Weapon."), 9, 9, true, policeCarCount = 1)
 )
 
+
 @Composable
 private fun MissionOverviewScreen(missionId: String, sourceId: String, onBack: () -> Unit, onBegin: () -> Unit) {
     val mission = coreMissionInfo[missionId] ?: coreMissionInfo.getValue("M0")
     val washington = washingtonMissionInfo[missionId]
     val fort = fortMissionInfo[missionId]
+    val digital = digitalMissionInfo.firstOrNull { it.id == missionId }
     Column(Modifier.fillMaxSize().padding(16.dp)) {
         LazyColumn(modifier = Modifier.weight(1f), contentPadding = PaddingValues(bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             item {
-                Text("MISSION $missionId", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+                Text("MISSION $missionId" + if (sourceId == "digital" && digital != null) " · PDF page ${digital.pdfPage}" else "", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
                 Spacer(Modifier.height(4.dp))
                 Text(
                     when (sourceId) {
                         "washington" -> washington?.name ?: mission.name
                         "fort" -> fort?.name ?: "Fort Hendrix"
+                        "digital" -> digital?.name ?: missionId
                         else -> mission.name
                     },
                     style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold
@@ -637,6 +892,7 @@ private fun MissionOverviewScreen(missionId: String, sourceId: String, onBack: (
                     when (sourceId) {
                         "washington" -> "${washington?.difficulty ?: ""} · About ${washington?.duration ?: ""}"
                         "fort" -> "${fort?.difficulty ?: ""} · About ${fort?.duration ?: ""}"
+                        "digital" -> "${digital?.difficulty ?: ""} · About ${digital?.duration ?: ""}" + (digital?.survivors?.takeIf { it != "Not specified" }?.let { " · $it" } ?: "")
                         else -> "${mission.difficulty} · About ${mission.duration}"
                     }, style = MaterialTheme.typography.titleSmall
                 )
@@ -648,6 +904,7 @@ private fun MissionOverviewScreen(missionId: String, sourceId: String, onBack: (
                     when (sourceId) {
                         "washington" -> "Washington Z.C. campaign mission. Follow the expansion rulebook for the complete briefing and special rules."
                         "fort" -> "Star-Spangled Banner campaign · Starting hour: ${fort?.startingHour ?: "see manual"}."
+                        "digital" -> digital?.briefing ?: "Mission details are not available in this batch."
                         else -> mission.briefing
                     }, style = MaterialTheme.typography.bodyLarge
                 )
@@ -658,6 +915,7 @@ private fun MissionOverviewScreen(missionId: String, sourceId: String, onBack: (
                 (when (sourceId) {
                     "washington" -> listOf(washington?.objective ?: "Follow the objective described in the Washington Z.C. rulebook.")
                     "fort" -> listOf(fort?.objective ?: "Consult the Fort Hendrix mission sheet.")
+                    "digital" -> digital?.objectives ?: emptyList()
                     else -> mission.objectives
                 }).forEach { BulletText(it) }
             }
@@ -667,27 +925,11 @@ private fun MissionOverviewScreen(missionId: String, sourceId: String, onBack: (
                 (when (sourceId) {
                     "washington" -> listOf("Use the Washington Z.C. expansion rules and mission map.")
                     "fort" -> listOf("Use the Fort Hendrix campaign rules, including Advanced Equipment, KO / R.I.P., Clock and Night rules, and Shooter Walkers.")
+                    "digital" -> digital?.specialRules ?: emptyList()
                     else -> mission.specialRules
                 }).forEach { BulletText(it) }
             }
-            item {
-                HorizontalDivider()
-                Text("Tiles required", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                Text(
-                    when (sourceId) {
-                        "washington" -> washington?.tiles?.joinToString(", ") ?: ""
-                        "fort" -> fort?.tiles?.joinToString(", ") ?: ""
-                        else -> mission.tiles.joinToString(", ")
-                    }, style = MaterialTheme.typography.bodyLarge
-                )
-                Text(
-                    when (sourceId) {
-                        "washington" -> "Source: Washington Z.C. rulebook, mission ${missionId.removePrefix("M")}."
-                        "fort" -> "Source: Fort Hendrix rulebook, mission ${missionId.removePrefix("M")}."
-                        else -> "Source: Core rulebook, mission page ${mission.page}."
-                    }, style = MaterialTheme.typography.labelSmall
-                )
-            }
+
         }
         BottomNavigationRow(onBack = onBack, primaryLabel = "Begin", onPrimary = onBegin, primaryIsLarge = true)
     }
@@ -718,7 +960,265 @@ private fun TileSetupScreen(
     onSetup: () -> Unit
 ) {
     val mission = coreMissionInfo[missionId] ?: coreMissionInfo.getValue("M0")
-    val checklistComponents = if (sourceId == "fort") buildList {
+    val checklistComponents = if (sourceId == "digital") buildList {
+        when (missionId) {
+            "WM1" -> {
+                add(MissionComponent("Starting Spawn Zone token", "1", "Place the Starting Spawn Zone token shown on the mission map."))
+                add(MissionComponent("Red Spawn Zone tokens", "2", "Prepare 2 Red Spawn Zone tokens."))
+                add(MissionComponent("Exit Zone token", "1", "Place the Exit Zone token shown on the mission map."))
+                add(MissionComponent("Epic Weapon Crates", "4", "Place 4 Epic Weapon Crates."))
+                add(MissionComponent("Red Objective tokens", "4", "Place 4 Red Objective tokens."))
+                add(MissionComponent("Muscle Car token", "1", "Place 1 Muscle Car token."))
+                add(MissionComponent("Walker miniatures", "4", "Place 4 Walkers in the indicated Zones."))
+            }
+            "WM2" -> {
+                add(MissionComponent("Starting Spawn Zone token", "1", "Prepare the Starting Spawn Zone token."))
+                add(MissionComponent("Red Spawn Zone tokens", "2", "Prepare 2 Red Spawn Zone tokens."))
+                add(MissionComponent("Green Spawn Zone token", "1", "Prepare 1 Green Spawn Zone token."))
+                add(MissionComponent("Epic Weapon Crates", "6", "Place 6 Epic Weapon Crates."))
+                add(MissionComponent("Red Objective tokens", "5", "Place 5 Red Objective tokens."))
+                add(MissionComponent("Green Objective token", "1", "Place 1 Green Objective token."))
+                add(MissionComponent("Abomination miniature", "1", "Place 1 Abomination in the indicated Zone."))
+            }
+            "WM3" -> {
+                add(MissionComponent("Starting Spawn Zone token", "1", "Prepare the Starting Spawn Zone token."))
+                add(MissionComponent("Red Spawn Zone tokens", "2", "Prepare 2 Red Spawn Zone tokens."))
+                add(MissionComponent("Exit Zone token", "1", "Place the Exit Zone token."))
+                add(MissionComponent("Epic Weapon Crates", "4", "Place 4 Epic Weapon Crates."))
+                add(MissionComponent("Red Objective tokens", "4", "Place 4 Red Objective tokens."))
+                add(MissionComponent("Red Open Door tokens", "2", "Place 2 Red Open Door tokens."))
+                add(MissionComponent("Red Closed Door tokens", "2", "Place 2 Red Closed Door tokens."))
+                add(MissionComponent("Walker miniatures", "2", "Place 2 Walkers in the indicated Zones."))
+            }
+            "WM4" -> {
+                add(MissionComponent("Starting Spawn Zone token", "1", "Prepare the Starting Spawn Zone token."))
+                add(MissionComponent("Red Spawn Zone tokens", "2", "Prepare 2 Red Spawn Zone tokens."))
+                add(MissionComponent("Exit Zone token", "1", "Place the Exit Zone token."))
+                add(MissionComponent("Epic Weapon Crates", "6", "Place 6 Epic Weapon Crates."))
+                add(MissionComponent("Red Objective tokens", "6", "Place 6 Red Objective tokens."))
+                add(MissionComponent("Red Open Door tokens", "3", "Place 3 Red Open Door tokens."))
+            }
+            "WM6" -> {
+                add(MissionComponent("Starting Spawn Zone token", "1", "Prepare the Starting Spawn Zone token."))
+                add(MissionComponent("Red Spawn Zone tokens", "2", "Prepare 2 Red Spawn Zone tokens."))
+                add(MissionComponent("Exit Zone token", "1", "Place the Exit Zone token shown on the mission map."))
+                add(MissionComponent("Epic Weapon Crates", "6", "Place 6 Epic Weapon Crates."))
+                add(MissionComponent("Red Objective tokens", "6", "Place 6 Red Objective tokens."))
+                add(MissionComponent("Red Closed Door token", "1", "Prepare 1 Red Closed Door token."))
+                add(MissionComponent("Blue Closed Door token", "1", "Prepare 1 Blue Closed Door token."))
+                add(MissionComponent("Green Closed Door token", "1", "Prepare 1 Green Closed Door token."))
+                add(MissionComponent("Police Car token", "1", "Prepare 1 Police Car token."))
+            }
+            "WM7" -> {
+                add(MissionComponent("Starting Spawn Zone token", "1", "Prepare the Starting Spawn Zone token."))
+                add(MissionComponent("Red Spawn Zone tokens", "2", "Prepare 2 Red Spawn Zone tokens."))
+                add(MissionComponent("Exit Zone token", "1", "Place the Exit Zone token shown on the mission map."))
+                add(MissionComponent("Blue Spawn Zone token", "1", "Prepare 1 Blue Spawn Zone token."))
+                add(MissionComponent("Green Spawn Zone token", "1", "Prepare 1 Green Spawn Zone token."))
+                add(MissionComponent("Epic Weapon Crates", "6", "Place 6 Epic Weapon Crates."))
+                add(MissionComponent("Red Objective tokens", "6", "Place 6 Red Objective tokens."))
+                add(MissionComponent("Police Car token", "1", "Prepare 1 Police Car token."))
+            }
+            "WM8" -> {
+                add(MissionComponent("Starting Spawn Zone token", "1", "Prepare the Starting Spawn Zone token."))
+                add(MissionComponent("Red Spawn Zone tokens", "2", "Prepare 2 Red Spawn Zone tokens."))
+                add(MissionComponent("Exit Zone token", "1", "Place the Exit Zone token shown on the mission map."))
+                add(MissionComponent("Blue Spawn Zone token", "1", "Prepare 1 Blue Spawn Zone token."))
+                add(MissionComponent("Green Spawn Zone token", "1", "Prepare 1 Green Spawn Zone token."))
+                add(MissionComponent("Epic Weapon Crates", "6", "Place 6 Epic Weapon Crates."))
+                add(MissionComponent("Red Objective tokens", "4", "Place 4 Red Objective tokens."))
+                add(MissionComponent("Blue Objective token", "1", "Prepare 1 Blue Objective token."))
+                add(MissionComponent("Green Objective token", "1", "Prepare 1 Green Objective token."))
+                add(MissionComponent("Blue Closed Door token", "1", "Prepare 1 Blue Closed Door token."))
+                add(MissionComponent("Green Closed Door token", "1", "Prepare 1 Green Closed Door token."))
+                add(MissionComponent("Police Car token", "1", "Prepare 1 Police Car token."))
+                add(MissionComponent("Muscle Car token", "1", "Prepare 1 Muscle Car token."))
+            }
+            "WM10" -> {
+                add(MissionComponent("Starting Spawn Zone token", "1", "Prepare the Starting Spawn Zone token."))
+                add(MissionComponent("Red Spawn Zone tokens", "2", "Prepare 2 Red Spawn Zone tokens."))
+                add(MissionComponent("Exit Zone token", "1", "Place the Exit Zone token shown on the mission map."))
+                add(MissionComponent("Blue Spawn Zone token", "1", "Prepare 1 Blue Spawn Zone token."))
+                add(MissionComponent("Green Spawn Zone token", "1", "Prepare 1 Green Spawn Zone token."))
+                add(MissionComponent("Epic Weapon Crates", "4", "Place 4 Epic Weapon Crates."))
+                add(MissionComponent("Red Objective tokens", "4", "Place 4 Red Objective tokens."))
+                add(MissionComponent("Red Closed Door tokens", "2", "Prepare 2 Red Closed Door tokens."))
+            }
+            "WM11" -> {
+                add(MissionComponent("Starting Spawn Zone token", "1", "Prepare the Starting Spawn Zone token."))
+                add(MissionComponent("Red Spawn Zone tokens", "2", "Prepare 2 Red Spawn Zone tokens."))
+                add(MissionComponent("Exit Zone token", "1", "Place the Exit Zone token shown on the mission map."))
+                add(MissionComponent("Epic Weapon Crates", "6", "Place 6 Epic Weapon Crates."))
+                add(MissionComponent("Red Objective tokens", "6", "Place 6 Red Objective tokens."))
+            }
+            "WM12" -> {
+                add(MissionComponent("Starting Spawn Zone token", "1", "Prepare the Starting Spawn Zone token."))
+                add(MissionComponent("Red Spawn Zone tokens", "2", "Prepare 2 Red Spawn Zone tokens."))
+                add(MissionComponent("Exit Zone token", "1", "Place the Exit Zone token shown on the mission map."))
+                add(MissionComponent("Blue Spawn Zone token", "1", "Prepare 1 Blue Spawn Zone token."))
+                add(MissionComponent("Green Spawn Zone token", "1", "Prepare 1 Green Spawn Zone token."))
+                add(MissionComponent("Epic Weapon Crates", "9", "Place 9 Epic Weapon Crates."))
+                add(MissionComponent("Red Objective tokens", "6", "Place 6 Red Objective tokens."))
+                add(MissionComponent("Muscle Car tokens", "3", "Prepare 3 Muscle Car tokens."))
+            }
+            "WM13" -> {
+                add(MissionComponent("Starting Spawn Zone token", "1", "Prepare the Starting Spawn Zone token."))
+                add(MissionComponent("Red Spawn Zone tokens", "2", "Prepare 2 Red Spawn Zone tokens."))
+                add(MissionComponent("Exit Zone token", "1", "Place the Exit Zone token shown on the mission map."))
+                add(MissionComponent("Green Spawn Zone token", "1", "Prepare 1 Green Spawn Zone token."))
+                add(MissionComponent("Epic Weapon Crates", "9", "Place 9 Epic Weapon Crates."))
+                add(MissionComponent("Red Objective tokens", "4", "Place 4 Red Objective tokens."))
+                add(MissionComponent("Blue Objective token", "1", "Prepare 1 Blue Objective token."))
+                add(MissionComponent("Green Objective token", "1", "Prepare 1 Green Objective token."))
+                add(MissionComponent("Police Car token", "1", "Prepare 1 Police Car token."))
+                add(MissionComponent("Red Closed Door tokens", "2", "Prepare 2 Red Closed Door tokens."))
+                add(MissionComponent("Blue Closed Door token", "1", "Prepare 1 Blue Closed Door token."))
+                add(MissionComponent("Green Closed Door token", "1", "Prepare 1 Green Closed Door token."))
+            }
+            "WM14" -> {
+                add(MissionComponent("Starting Spawn Zone token", "1", "Prepare the Starting Spawn Zone token."))
+                add(MissionComponent("Red Spawn Zone tokens", "2", "Prepare 2 Red Spawn Zone tokens."))
+                add(MissionComponent("Exit Zone token", "1", "Place the Exit Zone token shown on the mission map."))
+                add(MissionComponent("Green Spawn Zone token", "1", "Prepare 1 Green Spawn Zone token."))
+                add(MissionComponent("Epic Weapon Crates", "4", "Place 4 Epic Weapon Crates."))
+                add(MissionComponent("Red Objective tokens", "3", "Place 3 Red Objective tokens."))
+                add(MissionComponent("Blue Objective token", "1", "Prepare 1 Blue Objective token."))
+                add(MissionComponent("Green Objective token", "1", "Prepare 1 Green Objective token."))
+                add(MissionComponent("Red Closed Door token", "1", "Prepare 1 Red Closed Door token."))
+                add(MissionComponent("Red Open Door token", "1", "Prepare 1 Red Open Door token."))
+                add(MissionComponent("Blue Closed Door token", "1", "Prepare 1 Blue Closed Door token."))
+                add(MissionComponent("Green Closed Door token", "1", "Prepare 1 Green Closed Door token."))
+            }
+            "WM15" -> {
+                add(MissionComponent("Starting Spawn Zone token", "1", "Prepare the Starting Spawn Zone token."))
+                add(MissionComponent("Red Spawn Zone tokens", "2", "Prepare 2 Red Spawn Zone tokens."))
+                add(MissionComponent("Exit Zone token", "1", "Place the Exit Zone token shown on the mission map."))
+                add(MissionComponent("Epic Weapon Crates", "4", "Place 4 Epic Weapon Crates."))
+                add(MissionComponent("Red Objective tokens", "4", "Place 4 Red Objective tokens."))
+                add(MissionComponent("Abomination miniature", "1", "Prepare 1 Abomination miniature."))
+                add(MissionComponent("Runner miniatures", "3", "Prepare 3 Runner miniatures."))
+            }
+            "WM16" -> {
+                add(MissionComponent("Starting Spawn Zone token", "1", "Prepare the Starting Spawn Zone token."))
+                add(MissionComponent("Blue Spawn Zone token", "1", "Prepare 1 Blue Spawn Zone token."))
+                add(MissionComponent("Epic Weapon Crates", "6", "Place 6 Epic Weapon Crates."))
+                add(MissionComponent("Red Objective tokens", "4", "Place 4 Red Objective tokens."))
+                add(MissionComponent("Blue Objective token", "1", "Prepare 1 Blue Objective token."))
+                add(MissionComponent("Green Objective token", "1", "Prepare 1 Green Objective token."))
+                add(MissionComponent("Red Closed Door tokens", "9", "Prepare 9 Red Closed Door tokens."))
+                add(MissionComponent("Abomination miniature", "1", "Prepare 1 Abomination miniature."))
+            }
+            "WM17" -> {
+                add(MissionComponent("Starting Spawn Zone token", "1", "Prepare the Starting Spawn Zone token."))
+                add(MissionComponent("Red Spawn Zone tokens", "2", "Prepare 2 Red Spawn Zone tokens."))
+                add(MissionComponent("Exit Zone token", "1", "Place the Exit Zone token shown on the mission map."))
+                add(MissionComponent("Epic Weapon Crates", "4", "Place 4 Epic Weapon Crates."))
+                add(MissionComponent("Red Objective tokens", "3", "Place 3 Red Objective tokens."))
+                add(MissionComponent("Blue Objective token", "1", "Prepare 1 Blue Objective token."))
+                add(MissionComponent("Green Objective token", "1", "Prepare 1 Green Objective token."))
+            }
+            "WM18" -> {
+                add(MissionComponent("Starting Spawn Zone token", "1", "Prepare the Starting Spawn Zone token."))
+                add(MissionComponent("Red Spawn Zone tokens", "2", "Prepare 2 Red Spawn Zone tokens."))
+                add(MissionComponent("Exit Zone token", "1", "Place the Exit Zone token shown on the mission map."))
+                add(MissionComponent("Green Spawn Zone token", "1", "Prepare 1 Green Spawn Zone token."))
+                add(MissionComponent("Epic Weapon Crates", "4", "Place 4 Epic Weapon Crates."))
+                add(MissionComponent("Red Objective tokens", "3", "Place 3 Red Objective tokens."))
+                add(MissionComponent("Green Objective token", "1", "Prepare 1 Green Objective token."))
+                add(MissionComponent("Red Open Door tokens", "2", "Prepare 2 Red Open Door tokens."))
+                add(MissionComponent("Red Closed Door token", "1", "Prepare 1 Red Closed Door token."))
+                add(MissionComponent("Muscle Car token", "1", "Prepare 1 Muscle Car token."))
+                add(MissionComponent("Walker miniatures", "5", "Prepare 5 Walker miniatures."))
+            }
+            "WM19" -> {
+                add(MissionComponent("Starting Spawn Zone token", "1", "Prepare the Starting Spawn Zone token."))
+                add(MissionComponent("Red Spawn Zone token", "1", "Prepare 1 Red Spawn Zone token."))
+                add(MissionComponent("Exit Zone token", "1", "Place the Exit Zone token shown on the mission map."))
+                add(MissionComponent("Epic Weapon Crates", "4", "Place 4 Epic Weapon Crates."))
+                add(MissionComponent("Red Objective tokens", "4", "Place 4 Red Objective tokens."))
+                add(MissionComponent("Red Closed Door tokens", "4", "Prepare 4 Red Closed Door tokens."))
+            }
+            "WM20" -> {
+                add(MissionComponent("Survivor Starting Zone token", "1", "Place at the Starting Zone shown on the mission map."))
+                add(MissionComponent("Red Spawn Zone tokens", "2", "Prepare 2 Red Spawn Zone tokens."))
+                add(MissionComponent("Blue Spawn Zone token", "1", "Place the Blue Spawn Zone token shown on the map; it activates when the Blue Objective is taken."))
+                add(MissionComponent("Exit Zone token", "1", "Place at the Exit shown on the map."))
+                add(MissionComponent("Objective tokens", "4", "Use 4 Red Objectives and shuffle the Blue Objective among them."))
+                add(MissionComponent("Pimpweapon Crates", "4", "Place the 4 Pimpweapon Crates shown on the map."))
+                add(MissionComponent("Closed Door tokens", "4", "Place the closed doors shown on the map."))
+                add(MissionComponent("Companion miniature (Rod)", "1", "Use a random Companion to represent Rod."))
+            }
+            "WM21" -> {
+                add(MissionComponent("Survivor Starting Zones", "2", "Place a Survivor in each Starting Zone."))
+                add(MissionComponent("Spawn Zone tokens", "As shown", "Prepare the colored Spawn Zones shown on the map."))
+                add(MissionComponent("Exit Zone token", "1", "Place at the Exit shown on the map."))
+                add(MissionComponent("Objective tokens", "4", "Use the Blue, Green, and Red Objectives as indicated."))
+                add(MissionComponent("Pimpweapon Crates", "6", "Place the 6 Pimpweapon Crates shown on the map."))
+                add(MissionComponent("Pimpmobile token", "1", "Place the Pimpmobile shown on the map."))
+                add(MissionComponent("Closed Door tokens", "As shown", "Place the Red, Blue, and Green doors as shown; the Red Door is blocked."))
+                add(MissionComponent("Companion miniatures", "2", "Place a Companion in each Starting Zone."))
+            }
+            "WM23" -> {
+                add(MissionComponent("Survivor Starting Zone token", "1", "Place at the Starting Zone shown on the map."))
+                add(MissionComponent("Spawn Zone tokens", "As shown", "Prepare the colored Spawn Zones shown on the map."))
+                add(MissionComponent("Objective tokens", "As shown", "Place the Blue Objective on tile 2V and the Green Objective on tile 3V, outside its Objective Zone."))
+                add(MissionComponent("Pimpweapon Crates", "6", "Place the Pimpweapon Crates shown on the map."))
+                add(MissionComponent("Police Car token", "1", "Place the Police Car shown on the map."))
+                add(MissionComponent("Pimpmobile token", "1", "Place the Pimpmobile shown on the map."))
+                add(MissionComponent("Agatha counters", "2", "Use two counters of any kind for Agatha’s counter pool."))
+                add(MissionComponent("Abominacop miniature", "1", "Set the Abominacop aside; it enters play through the special rules."))
+            }
+            "WM24" -> {
+                add(MissionComponent("Survivor Starting Zone token", "1", "Place at the Starting Zone shown on the map."))
+                add(MissionComponent("Spawn Zone tokens", "As shown", "Prepare the colored Spawn Zones shown on the map."))
+                add(MissionComponent("Exit Zone tokens", "7", "Use the Exit tokens shown on the map."))
+                add(MissionComponent("Objective tokens", "As shown", "Use Red Objectives as fuel and place Blue and Green Objectives on tiles 8V and 2V."))
+                add(MissionComponent("Pimpweapon Crates", "9", "Place the 9 Pimpweapon Crates shown on the map."))
+                add(MissionComponent("Pimpmobile token", "1", "Place the Pimpmobile shown on the map."))
+                add(MissionComponent("Open and closed Door tokens", "As shown", "Place the reinforced doors shown on the map."))
+                add(MissionComponent("Noise tokens", "4", "Place 4 Noise tokens on the Pimpmobile when a Survivor first interacts with it."))
+            }
+            "WM25" -> {
+                add(MissionComponent("Survivor Starting Zone token", "1", "Place at the Starting Zone shown on the map."))
+                add(MissionComponent("Spawn Zone tokens", "3", "Prepare the 3 Spawn Zones shown on the map."))
+                add(MissionComponent("Exit Zone token", "1", "Place at tile 8R as shown on the map."))
+                add(MissionComponent("Objective tokens", "3", "Place Red Objectives as shown; do not place one on tile 8R."))
+                add(MissionComponent("Pimpweapon Crates", "4", "Place the 4 Pimpweapon Crates shown on the map."))
+                add(MissionComponent("Closed Door tokens", "As shown", "The Red Doors cannot be opened; the Blue and Green subway doors are linked."))
+            }
+            "WM26" -> {
+                add(MissionComponent("Survivor Starting Zone token", "1", "Place at the Starting Zone shown on the map."))
+                add(MissionComponent("Spawn Zone tokens", "As shown", "Prepare the colored Spawn Zones shown on the map."))
+                add(MissionComponent("Exit Zone token", "1", "Place at the Exit shown on the map."))
+                add(MissionComponent("Red Objective tokens", "4", "Place the 4 Objectives shown on the map."))
+                add(MissionComponent("Pimpweapon Crates", "4", "Place the 4 Pimpweapon Crates shown on the map."))
+                add(MissionComponent("Closed Door token", "1", "Place the door between tiles 1R and 7R."))
+            }
+            "WM9" -> {
+                add(MissionComponent("Starting Spawn Zone token", "1", "Prepare the Survivor Starting Zone token shown on the mission map."))
+                add(MissionComponent("Red Spawn Zone tokens", "2", "Prepare 2 Red Spawn Zone tokens."))
+                add(MissionComponent("Exit Zone token", "1", "Place the Exit Zone token shown on the mission map."))
+                add(MissionComponent("Red Objective tokens", "4", "Place 4 Objective tokens; each gives 5 Adrenaline Points to the Survivor who takes it."))
+                add(MissionComponent("Pimpweapon Crates", "4", "Place 4 Pimpweapon Crates."))
+                add(MissionComponent("Red Closed Door tokens", "5", "Place 5 Red Closed Door tokens."))
+                add(MissionComponent("Noise tokens for fire markers", "As needed", "Use Noise tokens as fire markers and follow the fire-spread rules. Fire markers remain between End Phases."))
+            }
+            "WM5" -> {
+                add(MissionComponent("Starting Spawn Zone token", "1", "Prepare the Starting Spawn Zone token."))
+                add(MissionComponent("Red Spawn Zone token", "1", "Prepare 1 Red Spawn Zone token."))
+                add(MissionComponent("Exit Zone token", "1", "Place the Exit Zone token."))
+                add(MissionComponent("Epic Weapon Crates", "4", "Place 4 Epic Weapon Crates."))
+                add(MissionComponent("Red Objective tokens", "4", "Place 4 Red Objective tokens."))
+                add(MissionComponent("Red Closed Door tokens", "6", "Place 6 Red Closed Door tokens."))
+            }
+            else -> {
+                add(MissionComponent("Spawn Zone tokens", "As shown", "Match the colored Spawn Zones and Starting Spawn Zone shown on the mission sheet."))
+                add(MissionComponent("Objective tokens", "As shown", "Use the colors and quantities shown on the mission sheet; some Objectives are placed facedown."))
+                add(MissionComponent("Epic Weapon Crates", "As shown", "Place the crates shown on the mission map."))
+                add(MissionComponent("Doors / cars / other tokens", "As shown", "Check the mission sheet for any doors, vehicles, Abominations, or special tokens required."))
+            }
+        }
+    } else if (sourceId == "fort") buildList {
         val redSpawn = if (missionId == "M4") 0 else 2
         if (redSpawn > 0) add(MissionComponent("Red Spawn Zone tokens", redSpawn.toString(), "Prepare the Red Spawn tokens for the mission map."))
         add(MissionComponent("Starting Spawn Zone token", "1", "Prepare the Starting Spawn token for the mission map."))
@@ -827,7 +1327,12 @@ private fun TileSetupScreen(
     Column(Modifier.fillMaxSize().padding(16.dp)) {
         Text("Tiles & layout", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(6.dp))
-        Text(if (sourceId == "washington") "Mission $missionId · ${washingtonMissionInfo[missionId]?.name ?: "Washington Z.C."}" else "Mission ${mission.id} · ${mission.name}", style = MaterialTheme.typography.labelLarge)
+        Text(when (sourceId) {
+            "digital" -> "MISSION $missionId" + (digitalMissionInfo.firstOrNull { it.id == missionId }?.let { " · PDF page ${it.pdfPage}" } ?: "")
+            "washington" -> "MISSION $missionId"
+            "fort" -> "MISSION $missionId"
+            else -> "MISSION ${mission.id}"
+        }, style = MaterialTheme.typography.labelLarge)
         Spacer(Modifier.height(12.dp))
         LazyColumn(
             modifier = Modifier.weight(1f),
@@ -880,7 +1385,6 @@ private fun TileSetupScreen(
                             }
                         }
                         Spacer(Modifier.height(8.dp))
-                        Text("Source: Core rulebook, mission page ${mission.page}.", style = MaterialTheme.typography.labelSmall)
                     }
                 }
             }
@@ -940,6 +1444,7 @@ private fun TileSetupScreen(
 private fun MapLayoutScreen(tiles: List<String>, missionId: String, sourceId: String, onBack: () -> Unit, onContinue: () -> Unit) {
     val tileCount = tiles.size
     val columns = when {
+        sourceId == "digital" && missionId in listOf("WM1", "WM2", "WM3", "WM4", "WM5") -> 2
         sourceId == "fort" && missionId in listOf("M2", "M3", "M6", "M9", "M10") -> 2
         sourceId == "fort" -> 3
         sourceId == "washington" && missionId in listOf("M2", "M3", "M6", "M10") -> 2
@@ -1005,6 +1510,28 @@ private fun MapLayoutScreen(tiles: List<String>, missionId: String, sourceId: St
                 "R" -> 90f
                 "RR", "LL" -> 180f
                 "L" -> 270f
+                else -> 0f
+            }
+        }
+        if (sourceId == "digital") {
+            val digitalDirections = mapOf(
+                "WM1" to listOf("M", "L", "L", "RR"),
+                "WM2" to listOf("L", "R", "L", "L", "N", "R"),
+                "WM3" to listOf("L", "N", "RR", "N"),
+                "WM4" to listOf("N", "N", "RR", "L", "N", "L"),
+                "WM5" to listOf("RR", "RR", "N", "RR")
+            )
+            val missionTiles = digitalMissionInfo.firstOrNull { it.id == missionId }?.tiles.orEmpty()
+            val occurrenceIndex = missionTiles.indices.firstOrNull { index ->
+                missionTiles[index].equals(tile, ignoreCase = true) &&
+                    missionTiles.take(index).count { it.equals(tile, ignoreCase = true) } == 0
+            } ?: -1
+            val direction = digitalDirections[missionId]?.getOrNull(occurrenceIndex) ?: "N"
+            return when (direction) {
+                "R" -> 90f
+                "RR" -> 180f
+                "L" -> 270f
+                "M" -> 0f
                 else -> 0f
             }
         }
@@ -1188,7 +1715,7 @@ private fun MapLayoutScreen(tiles: List<String>, missionId: String, sourceId: St
         Text("Mission map setup", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(4.dp))
         Text(
-            "${missionId} · ${when (sourceId) { "washington" -> washingtonMissionInfo[missionId]?.name ?: "Washington Z.C."; "fort" -> fortMissionInfo[missionId]?.name ?: "Fort Hendrix"; else -> coreMissionInfo[missionId]?.name ?: "Zombicide Life" }}  ⓘ",
+            "${missionId} · ${when (sourceId) { "washington" -> washingtonMissionInfo[missionId]?.name ?: "Washington Z.C."; "fort" -> fortMissionInfo[missionId]?.name ?: "Fort Hendrix"; "digital" -> digitalMissionInfo.firstOrNull { it.id == missionId }?.name ?: missionId; else -> coreMissionInfo[missionId]?.name ?: "Zombicide Life" }}  ⓘ",
             style = MaterialTheme.typography.labelLarge,
             modifier = Modifier.clickable { showMissionMap = true }
         )
@@ -1378,7 +1905,7 @@ private fun MapLayoutScreen(tiles: List<String>, missionId: String, sourceId: St
         Dialog(onDismissRequest = { showMissionMap = false }) {
             Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
                 Column(Modifier.padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("${missionId} · ${when (sourceId) { "washington" -> washingtonMissionInfo[missionId]?.name ?: "Washington Z.C."; "fort" -> fortMissionInfo[missionId]?.name ?: "Fort Hendrix"; else -> coreMissionInfo[missionId]?.name ?: "Zombicide Life" }}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    Text("${missionId} · ${when (sourceId) { "washington" -> washingtonMissionInfo[missionId]?.name ?: "Washington Z.C."; "fort" -> fortMissionInfo[missionId]?.name ?: "Fort Hendrix"; "digital" -> digitalMissionInfo.firstOrNull { it.id == missionId }?.name ?: missionId; else -> coreMissionInfo[missionId]?.name ?: "Zombicide Life" }}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                     Spacer(Modifier.height(8.dp))
                     AssetImage(
                         path = "maps/map_${missionId.lowercase()}${when (sourceId) { "washington" -> "z"; "fort" , "fort_hendrix" -> "f"; else -> "" }}.png",
@@ -1529,7 +2056,7 @@ private fun GameplayScreen(
     ) {
         Text("Mission in Progress", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
         Text(
-            "${missionId} · ${when (sourceId) { "washington" -> washingtonMissionInfo[missionId]?.name ?: "Washington Z.C."; "fort" -> fortMissionInfo[missionId]?.name ?: "Fort Hendrix"; else -> coreMissionInfo[missionId]?.name ?: "Zombicide Life" }}",
+            "${missionId} · ${when (sourceId) { "washington" -> washingtonMissionInfo[missionId]?.name ?: "Washington Z.C."; "fort" -> fortMissionInfo[missionId]?.name ?: "Fort Hendrix"; "digital" -> digitalMissionInfo.firstOrNull { it.id == missionId }?.name ?: missionId; else -> coreMissionInfo[missionId]?.name ?: "Zombicide Life" }}",
             style = MaterialTheme.typography.titleMedium
         )
         Spacer(Modifier.height(18.dp))
@@ -1670,6 +2197,7 @@ private fun RulebookScreen(onBack: () -> Unit) {
 private fun loadMissionTiles(context: Context, setId: String, missionId: String): List<String> {
     if (setId == "washington") return washingtonMissionInfo[missionId]?.tiles ?: emptyList()
     if (setId == "fort") return fortMissionInfo[missionId]?.tiles ?: emptyList()
+    if (setId == "digital") return digitalMissionInfo.firstOrNull { it.id == missionId }?.tiles ?: emptyList()
     // These mission tile orders are explicitly defined in the app source from the user's layout instructions.
     if (setId == "core" && missionId in listOf("M12", "M13", "M14", "M15")) {
         return coreMissionInfo[missionId]?.tiles ?: listOf("1V", "3V")

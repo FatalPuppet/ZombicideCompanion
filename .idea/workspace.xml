@@ -9,7 +9,48 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="4bbbb7e0-18b2-4192-b875-85a3393eb5af" name="Changes" comment="Core, Washington ZC, Fort Hendrix rules and mission loaded. Digital in progress" />
+    <list default="true" id="4bbbb7e0-18b2-4192-b875-85a3393eb5af" name="Changes" comment="Core, Washington ZC, Fort Hendrix rules and mission loaded. Digital in progress">
+      <change beforePath="$PROJECT_DIR$/.gradle/9.8.0/executionHistory/executionHistory.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/9.8.0/executionHistory/executionHistory.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/9.8.0/executionHistory/executionHistory.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/9.8.0/executionHistory/executionHistory.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/9.8.0/fileHashes/fileHashes.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/9.8.0/fileHashes/fileHashes.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/9.8.0/fileHashes/fileHashes.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/9.8.0/fileHashes/fileHashes.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/9.8.0/fileHashes/resourceHashesCache.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/9.8.0/fileHashes/resourceHashesCache.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/2c3e14d7-b72e-4388-9ca7-80cec9632efe/.globals.work.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/2c3e14d7-b72e-4388-9ca7-80cec9632efe/.strings.work.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/2c3e14d7-b72e-4388-9ca7-80cec9632efe/_.work.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/2c3e14d7-b72e-4388-9ca7-80cec9632efe/buildfingerprint.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/2c3e14d7-b72e-4388-9ca7-80cec9632efe/classloaderscopes.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/2c3e14d7-b72e-4388-9ca7-80cec9632efe/entry.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/2c3e14d7-b72e-4388-9ca7-80cec9632efe/projectfingerprint.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/2c3e14d7-b72e-4388-9ca7-80cec9632efe/work.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/36b0715e-746e-4dce-a308-67b8afe24259/classloaderscopes5292994063754637351.tmp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/3el8eyewg7goqkq5gsli2ul6h/candidates.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/configuration-cache/3el8eyewg7goqkq5gsli2ul6h/candidates.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/40fc16fd-b60e-45b8-aa02-93272a759338/.globals.work.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/40fc16fd-b60e-45b8-aa02-93272a759338/.strings.work.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/40fc16fd-b60e-45b8-aa02-93272a759338/_app.work.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/40fc16fd-b60e-45b8-aa02-93272a759338/buildfingerprint.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/40fc16fd-b60e-45b8-aa02-93272a759338/classloaderscopes.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/40fc16fd-b60e-45b8-aa02-93272a759338/entry.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/40fc16fd-b60e-45b8-aa02-93272a759338/projectfingerprint.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/40fc16fd-b60e-45b8-aa02-93272a759338/work.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/5fl0q8ho0x2cegzxv23p8ot0n/candidates.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/93e2df3d-a0ab-487f-bc8e-289208487747/classloaderscopes6899286198468871017.tmp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/ceada9bd-76f2-4c40-8400-3976a1995fcf/.globals.work.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/ceada9bd-76f2-4c40-8400-3976a1995fcf/.strings.work.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/ceada9bd-76f2-4c40-8400-3976a1995fcf/_.work.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/ceada9bd-76f2-4c40-8400-3976a1995fcf/buildfingerprint.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/ceada9bd-76f2-4c40-8400-3976a1995fcf/classloaderscopes.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/ceada9bd-76f2-4c40-8400-3976a1995fcf/entry.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/ceada9bd-76f2-4c40-8400-3976a1995fcf/projectfingerprint.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/ceada9bd-76f2-4c40-8400-3976a1995fcf/work.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/ceb6c97d-55a2-4d2c-a274-36fb92358a9a/classloaderscopes16056852296229822792.tmp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/d7kjmzkxsaw4ztdtj86ny5u5d/candidates.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/eo8ek532aud53t7oj94ta0yg7/candidates.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/fatalpuppet/zombicide/MainActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/fatalpuppet/zombicide/MainActivity.kt" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -35,7 +76,7 @@
 }</component>
   <component name="GithubPullRequestsUISettings">{
   &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/FatalPuppet/ZombicideCompanion.git&quot;,
+    &quot;url&quot;: &quot;https://github.com/FatalPuppet/ZombicideCompanion/&quot;,
     &quot;accountId&quot;: &quot;1748d14a-3d9f-4113-a493-a07096c313d6&quot;
   }
 }</component>
@@ -71,7 +112,7 @@
     &quot;git-widget-placeholder&quot;: &quot;main&quot;,
     &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
     &quot;last_opened_file_path&quot;: &quot;/Users/mirkocalvi/Downloads/ZombicideCompanion&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;reference.settingsdialog.project.gradle&quot;
+    &quot;settings.editor.selected.configurable&quot;: &quot;org.jetbrains.plugins.github.ui.GithubSettingsConfigurable&quot;
   }
 }</component>
   <component name="RunManager">
@@ -161,17 +202,6 @@
     <MESSAGE value="General cleanup" />
     <MESSAGE value="Core, Washington ZC, Fort Hendrix rules and mission loaded. Digital in progress" />
     <option name="LAST_COMMIT_MESSAGE" value="Core, Washington ZC, Fort Hendrix rules and mission loaded. Digital in progress" />
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="kotlin-line">
-          <url>file://$PROJECT_DIR$/app/src/main/java/com/fatalpuppet/zombicide/MainActivity.kt</url>
-          <line>259</line>
-          <option name="timeStamp" value="2" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
   </component>
   <component name="play_dynamic_filters_status">
     <option name="appIdToCheckInfo">
