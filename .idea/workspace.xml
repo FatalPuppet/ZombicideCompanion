@@ -9,48 +9,14 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="4bbbb7e0-18b2-4192-b875-85a3393eb5af" name="Changes" comment="Digital mission preparation, Rio and Pariz added, mission description separated from main file">
-      <change beforePath="$PROJECT_DIR$/.gradle/9.8.0/fileHashes/fileHashes.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/9.8.0/fileHashes/fileHashes.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/buildOutputCleanup/cache.properties" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/buildOutputCleanup/cache.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/buildOutputCleanup/outputFiles.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/buildOutputCleanup/outputFiles.bin" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/3lz2c7orbch1wr1ep67c452yr/candidates.bin" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/53a678af-79a8-4a99-b0af-c8ec304cd558/.globals.work.bin" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/53a678af-79a8-4a99-b0af-c8ec304cd558/.strings.work.bin" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/53a678af-79a8-4a99-b0af-c8ec304cd558/_app.work.bin" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/53a678af-79a8-4a99-b0af-c8ec304cd558/buildfingerprint.bin" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/53a678af-79a8-4a99-b0af-c8ec304cd558/classloaderscopes.bin" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/53a678af-79a8-4a99-b0af-c8ec304cd558/entry.bin" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/53a678af-79a8-4a99-b0af-c8ec304cd558/projectfingerprint.bin" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/53a678af-79a8-4a99-b0af-c8ec304cd558/work.bin" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/6ti3prl3wunrc0lylbm50u0dw/candidates.bin" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/6wc7v9yccv8ctnzmj1zx4imsb/candidates.bin" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/8e76087c-f31a-4e66-b6a6-8507c3a10b87/.globals.work.bin" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/8e76087c-f31a-4e66-b6a6-8507c3a10b87/.strings.work.bin" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/8e76087c-f31a-4e66-b6a6-8507c3a10b87/_app.work.bin" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/8e76087c-f31a-4e66-b6a6-8507c3a10b87/buildfingerprint.bin" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/8e76087c-f31a-4e66-b6a6-8507c3a10b87/classloaderscopes.bin" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/8e76087c-f31a-4e66-b6a6-8507c3a10b87/entry.bin" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/8e76087c-f31a-4e66-b6a6-8507c3a10b87/projectfingerprint.bin" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/8e76087c-f31a-4e66-b6a6-8507c3a10b87/work.bin" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/9v67ohn01cxutumx0skw8v78j/candidates.bin" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/c7ef54ad-512f-4d8b-8844-1bfb6f286402/.globals.work.bin" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/c7ef54ad-512f-4d8b-8844-1bfb6f286402/.strings.work.bin" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/c7ef54ad-512f-4d8b-8844-1bfb6f286402/_app.work.bin" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/c7ef54ad-512f-4d8b-8844-1bfb6f286402/buildfingerprint.bin" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/c7ef54ad-512f-4d8b-8844-1bfb6f286402/classloaderscopes.bin" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/c7ef54ad-512f-4d8b-8844-1bfb6f286402/entry.bin" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/c7ef54ad-512f-4d8b-8844-1bfb6f286402/projectfingerprint.bin" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/configuration-cache/c7ef54ad-512f-4d8b-8844-1bfb6f286402/work.bin" beforeDir="false" />
+    <list default="true" id="4bbbb7e0-18b2-4192-b875-85a3393eb5af" name="Changes" comment="Added missing files">
       <change beforePath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/deploymentTargetSelector.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/deploymentTargetSelector.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/java/com/fatalpuppet/zombicide/MainActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/fatalpuppet/zombicide/MainActivity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/fatalpuppet/zombicide/data/missions/DigitalMissions.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/fatalpuppet/zombicide/data/missions/DigitalMissions.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/build/reports/problems/problems-report.html" beforeDir="false" afterPath="$PROJECT_DIR$/build/reports/problems/problems-report.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gradle/wrapper/gradle-wrapper.properties" beforeDir="false" afterPath="$PROJECT_DIR$/gradle/wrapper/gradle-wrapper.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gradlew" beforeDir="false" afterPath="$PROJECT_DIR$/gradlew" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gradlew.bat" beforeDir="false" afterPath="$PROJECT_DIR$/gradlew.bat" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -102,8 +68,6 @@
     "Gradle.Upgrade Gradle wrapper.executor": "Run",
     "GradleDaemonJvmCriteriaMigrationNotification.isNotificationDisabled": "true",
     "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "Notification.DisplayName-DoNotAsk-Android Notification Group": "Android Notification Group",
-    "Notification.DoNotAsk-Android Notification Group": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.cidr.known.project.marker": "true",
     "RunOnceActivity.git.unshallow": "true",
@@ -310,7 +274,8 @@
     <MESSAGE value="Core, Washington ZC, Fort Hendrix rules and mission loaded. Digital in progress" />
     <MESSAGE value="Digital mission in progress" />
     <MESSAGE value="Digital mission preparation, Rio and Pariz added, mission description separated from main file" />
-    <option name="LAST_COMMIT_MESSAGE" value="Digital mission preparation, Rio and Pariz added, mission description separated from main file" />
+    <MESSAGE value="Added missing files" />
+    <option name="LAST_COMMIT_MESSAGE" value="Added missing files" />
   </component>
   <component name="play_dynamic_filters_status">
     <option name="appIdToCheckInfo">

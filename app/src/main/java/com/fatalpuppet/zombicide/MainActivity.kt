@@ -578,7 +578,7 @@ private fun MissionOverviewScreen(missionId: String, sourceId: String, onBack: (
 
 private data class MissionComponent(
     val name: String,
-    val quantity: String,
+    val quantity: String?,
     val placement: String
 )
 
@@ -864,14 +864,8 @@ private fun TileSetupScreen(
         if (redSpawn > 0) add(MissionComponent("Red Spawn Zone tokens", redSpawn.toString(), "Prepare the Red Spawn tokens for the mission map."))
         add(MissionComponent("Starting Spawn Zone token", "1", "Prepare the Starting Spawn token for the mission map."))
         if (missionId in listOf("M6", "M7", "M8", "M10")) add(MissionComponent("Green Spawn Zone token", "1", "Prepare the Green Spawn token for the mission map."))
-        val objectives = mapOf("M1" to 6, "M2" to 6, "M3" to 6, "M4" to 8, "M5" to 8, "M6" to 8, "M7" to 6, "M8" to 9, "M9" to 8, "M10" to 8)
-        val notes = mapOf("M1" to 2, "M2" to 1, "M3" to 1, "M4" to 3, "M5" to 2, "M6" to 2, "M8" to 2, "M9" to 1, "M10" to 4)
         val weapons = mapOf("M1" to 6, "M2" to 6, "M3" to 6, "M4" to 4, "M5" to 6, "M6" to 8, "M7" to 6, "M8" to 9, "M9" to 8, "M10" to 8)
-        add(MissionComponent("Objective cards", objectives[missionId].toString(), "Prepare Objective Set #${missionId.removePrefix("M")} for this mission."))
-        notes[missionId]?.let { count ->
-            val nums = (1..count).joinToString(", ") { "#$it" }
-            add(MissionComponent("Notes", count.toString(), "Required notes: $nums."))
-        }
+        add(MissionComponent("Objective set", null, "Retrieve the right set for the current mission"))
         add(MissionComponent("Epic Weapon Crates", weapons[missionId].toString(), "Prepare the Epic Weapon Crates for this mission."))
         if (missionId == "M4") add(MissionComponent("Red Door tokens", "3", "Prepare 3 Red Door tokens."))
         if (missionId in listOf("M5", "M6")) add(MissionComponent("Green Door token", "1", "Prepare 1 Green Door token."))
@@ -897,17 +891,9 @@ private fun TileSetupScreen(
         greenDoorCounts[missionId]?.takeIf { it > 0 }?.let { add(MissionComponent("Green Door token", it.toString(), "Prepare the green Door token for this mission.")) }
 
         val humveeCounts = mapOf("M1" to 1, "M2" to 1)
-        val objectiveCardCounts = mapOf("M1" to 7, "M2" to 6, "M3" to 7, "M4" to 9, "M5" to 9, "M6" to 6, "M7" to 6, "M8" to 8, "M9" to 6, "M10" to 9)
-        val notesCounts = mapOf("M1" to 2, "M5" to 5, "M6" to 6, "M7" to 3, "M8" to 5, "M10" to 1)
-        val noteNumbers = mapOf("M1" to listOf(1, 2), "M5" to listOf(1, 2, 3, 4, 5), "M6" to listOf(1, 2, 3, 4, 5, 6), "M7" to listOf(1, 2, 3), "M8" to listOf(1, 2, 3, 4, 5), "M10" to listOf(1))
         val lightBeamCounts = mapOf("M4" to 3)
         humveeCounts[missionId]?.let { add(MissionComponent("Humvee Car token", it.toString(), "Prepare the Humvee Car token for this mission.")) }
-        objectiveCardCounts[missionId]?.let { add(MissionComponent("Objective cards", it.toString(), "Prepare the Objective cards and recover Objective Set #${missionId.removePrefix("M")} for this mission.")) }
-        notesCounts[missionId]?.let {
-            val label = if (missionId == "M7") "Abomination Notes" else "Notes"
-            val numbers = noteNumbers[missionId].orEmpty().joinToString(", ") { noteNumber -> "#$noteNumber" }
-            add(MissionComponent(label, it.toString(), "Required notes: $numbers."))
-        }
+        add(MissionComponent("Objective set", null, "Retrieve the right set for the current mission"))
         lightBeamCounts[missionId]?.let { add(MissionComponent("Light Beams", it.toString(), "Prepare the Light Beam tokens for this mission.")) }
     } else buildList {
         add(MissionComponent(
@@ -1904,6 +1890,7 @@ private fun ChecklistRow(
             label.contains("Noise", ignoreCase = true) -> listOf("noise")
             label.contains("Crashed Car", ignoreCase = true) -> listOf("muscle_car", "police_car")
             label.contains("Humvee", ignoreCase = true) -> listOf("humvee_car")
+            label.contains("Objective set", ignoreCase = true) -> listOf("notes")
             label.contains("Notes", ignoreCase = true) -> listOf("notes")
             label.contains("Light Beam", ignoreCase = true) -> listOf("light_beam")
             label.contains("First Player", ignoreCase = true) -> listOf("spawn_1st")
