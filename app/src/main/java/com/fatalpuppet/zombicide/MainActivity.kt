@@ -684,6 +684,7 @@ private fun TileSetupScreen(
                 add(MissionComponent("Epic Weapon Crates", "4", "Place 4 Epic Weapon Crates."))
                 add(MissionComponent("Red Objective tokens", "4", "Place 4 Red Objective tokens."))
                 add(MissionComponent("Red Closed Door tokens", "2", "Prepare 2 Red Closed Door tokens."))
+                add(MissionComponent("Police Car token", "1", "Prepare 1 Police Car token."))
             }
             "WM11" -> {
                 add(MissionComponent("Starting Spawn Zone token", "1", "Prepare the Starting Spawn Zone token."))
@@ -1031,6 +1032,11 @@ private fun TileSetupScreen(
                                 detail = component.placement,
                                 quantity = component.quantity,
                                 checked = itemId in preparedItems,
+                                drawableName = when {
+                                    component.name.contains("Walker", ignoreCase = true) -> "walker"
+                                    component.name.contains("Abomination", ignoreCase = true) -> "abomination"
+                                    else -> null
+                                },
                                 onCheckedChange = { onTogglePrepared(itemId) }
                             )
                         }
@@ -1071,7 +1077,8 @@ private fun TileSetupScreen(
 private fun MapLayoutScreen(tiles: List<String>, missionId: String, sourceId: String, onBack: () -> Unit, onContinue: () -> Unit) {
     val tileCount = tiles.size
     val columns = when {
-        sourceId == "digital" && missionId in listOf("WM1", "WM2", "WM3", "WM4", "WM5") -> 2
+        sourceId == "digital" && missionId == "WM6" -> 3
+        sourceId == "digital" && missionId in listOf("WM1", "WM2", "WM3", "WM4", "WM5", "WM7", "WM8", "WM9", "WM10") -> 2
         sourceId == "fort" && missionId in listOf("M2", "M3", "M6", "M9", "M10") -> 2
         sourceId == "fort" -> 3
         sourceId == "washington" && missionId in listOf("M2", "M3", "M6", "M10") -> 2
@@ -1145,8 +1152,13 @@ private fun MapLayoutScreen(tiles: List<String>, missionId: String, sourceId: St
                 "WM1" to listOf("M", "L", "L", "RR"),
                 "WM2" to listOf("L", "R", "L", "L", "N", "R"),
                 "WM3" to listOf("L", "N", "RR", "N"),
-                "WM4" to listOf("N", "N", "RR", "L", "N", "L"),
-                "WM5" to listOf("RR", "RR", "N", "RR")
+                "WM4" to listOf("N", "N", "RR", "L", "L", "L"),
+                "WM5" to listOf("RR", "RR", "N", "RR"),
+                "WM6" to listOf("R", "RR", "L", "R", "L", "L"),
+                "WM7" to listOf("R", "RR", "N", "RR", "R", "N"),
+                "WM8" to listOf("RR", "R", "R", "R", "L", "L"),
+                "WM9" to listOf("L", "N", "L", "R"),
+                "WM10" to listOf("N", "L", "LL", "N")
             )
             val missionTiles = digitalMissionInfo.firstOrNull { it.id == missionId }?.tiles.orEmpty()
             val occurrenceIndex = missionTiles.indices.firstOrNull { index ->
@@ -1535,7 +1547,11 @@ private fun MapLayoutScreen(tiles: List<String>, missionId: String, sourceId: St
                     Text("${missionId} · ${when (sourceId) { "washington" -> washingtonMissionInfo[missionId]?.name ?: "Washington Z.C."; "fort" -> fortMissionInfo[missionId]?.name ?: "Fort Hendrix"; "digital" -> digitalMissionInfo.firstOrNull { it.id == missionId }?.name ?: missionId; else -> coreMissionInfo[missionId]?.name ?: "Zombicide Life" }}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                     Spacer(Modifier.height(8.dp))
                     AssetImage(
-                        path = "maps/map_${missionId.lowercase()}${when (sourceId) { "washington" -> "z"; "fort" , "fort_hendrix" -> "f"; else -> "" }}.png",
+                        path = if (sourceId == "digital") {
+                            "maps/map_m${missionId.removePrefix("WM")}d.png"
+                        } else {
+                            "maps/map_${missionId.lowercase()}${when (sourceId) { "washington" -> "z"; "fort", "fort_hendrix" -> "f"; else -> "" }}.png"
+                        },
                         contentDescription = "General map for $missionId showing token locations",
                         modifier = Modifier.fillMaxWidth().weight(1f, fill = false).height(420.dp),
                         contentScale = ContentScale.Fit
@@ -1878,12 +1894,12 @@ private fun ChecklistRow(
                 label.contains("Green", true) -> listOf("objective_green")
                 else -> listOf("objective_red")
             }
-            label.contains("Epic Weapon Crate", ignoreCase = true) -> listOf("pimp_crate")
+            label.contains("Epic Weapon Crate", ignoreCase = true) || label.contains("Pimpweapon Crate", ignoreCase = true) -> listOf("pimp_crate")
             label.contains("Exit Zone", ignoreCase = true) -> listOf("exit")
             label.contains("Open Door", ignoreCase = true) -> listOf("door_red_open", "door_blue_open", "door_green_open")
-            label.contains("Red Door", ignoreCase = true) -> listOf("door_red")
-            label.contains("Blue Door", ignoreCase = true) -> listOf("door_blue")
-            label.contains("Green Door", ignoreCase = true) -> listOf("door_green")
+            label.contains("Red Closed Door", ignoreCase = true) || label.contains("Red Door", ignoreCase = true) -> listOf("door_red")
+            label.contains("Blue Closed Door", ignoreCase = true) || label.contains("Blue Door", ignoreCase = true) -> listOf("door_blue")
+            label.contains("Green Closed Door", ignoreCase = true) || label.contains("Green Door", ignoreCase = true) -> listOf("door_green")
             label.contains("Police Car", ignoreCase = true) -> listOf("police_car")
             label.contains("Muscle Car", ignoreCase = true) -> listOf("muscle_car")
             label.contains("Broken Door", ignoreCase = true) -> listOf("door_red", "door_blue", "door_green")
