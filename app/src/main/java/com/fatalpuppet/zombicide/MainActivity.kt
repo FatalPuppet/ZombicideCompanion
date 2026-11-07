@@ -1074,11 +1074,58 @@ private fun TileSetupScreen(
 }
 
 @Composable
+private fun DigitalTileRows(
+    rows: List<List<String?>>,
+    modifier: Modifier = Modifier,
+    tileAsset: (String) -> String,
+    rotationDegrees: (String) -> Float,
+    rotationLabel: (Float) -> String,
+    onTileClick: (String) -> Unit
+) {
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(0.dp)) {
+        rows.forEach { rowTiles ->
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(0.dp)) {
+                rowTiles.forEach { tile ->
+                    if (tile == null) {
+                        Spacer(Modifier.weight(1f).aspectRatio(1f))
+                    } else {
+                        Card(
+                            modifier = Modifier.weight(1f).aspectRatio(1f)
+                                .border(0.5.dp, MaterialTheme.colorScheme.outline)
+                                .clickable { onTileClick(tile) },
+                            shape = RectangleShape,
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                        ) {
+                            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                AssetImage(
+                                    path = tileAsset(tile),
+                                    contentDescription = "Tile $tile",
+                                    contentScale = ContentScale.Fit,
+                                    modifier = Modifier.fillMaxSize().graphicsLayer { rotationZ = rotationDegrees(tile) }
+                                )
+                                Text(
+                                    rotationLabel(rotationDegrees(tile)),
+                                    modifier = Modifier.align(Alignment.TopCenter).padding(top = 2.dp),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Color.White
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
 private fun MapLayoutScreen(tiles: List<String>, missionId: String, sourceId: String, onBack: () -> Unit, onContinue: () -> Unit) {
     val tileCount = tiles.size
     val columns = when {
-        sourceId == "digital" && missionId == "WM6" -> 3
-        sourceId == "digital" && missionId in listOf("WM1", "WM2", "WM3", "WM4", "WM5", "WM7", "WM8", "WM9", "WM10") -> 2
+        sourceId == "digital" && missionId in listOf("WM13", "WM25", "WM33") -> 4
+        sourceId == "digital" && missionId in listOf("WM24", "WM34") -> 3
+        sourceId == "digital" && missionId in listOf("WM11", "WM12", "WM16", "WM21", "WM23", "WM27", "WM29", "WM32", "WM37") -> 2
+        sourceId == "digital" && missionId in listOf("WM1", "WM2", "WM3", "WM4", "WM5", "WM6", "WM7", "WM8", "WM9", "WM10", "WM14", "WM15", "WM17", "WM18", "WM19", "WM20", "WM26", "WM28", "WM30", "WM31", "WM35", "WM36") -> 2
         sourceId == "fort" && missionId in listOf("M2", "M3", "M6", "M9", "M10") -> 2
         sourceId == "fort" -> 3
         sourceId == "washington" && missionId in listOf("M2", "M3", "M6", "M10") -> 2
@@ -1410,7 +1457,84 @@ private fun MapLayoutScreen(tiles: List<String>, missionId: String, sourceId: St
                 modifier = Modifier.fillMaxWidth().weight(1f),
                 verticalArrangement = Arrangement.spacedBy(0.dp)
             ) {
-                if (sourceId == "washington" && missionId in listOf("M5", "M7")) {
+                if (sourceId == "digital" && missionId == "WM28") {
+                    // Two separate boards: a 2x2 group on the left and a vertical 1x2 group on the right.
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                        DigitalTileRows(
+                            rows = listOf(listOf("13V", "12R"), listOf("14V", "11R")),
+                            modifier = Modifier.weight(2f), tileAsset = ::tileAsset,
+                            rotationDegrees = ::tileRotationDegrees, rotationLabel = ::rotationLabel,
+                            onTileClick = { enlargedTile = it }
+                        )
+                        DigitalTileRows(
+                            rows = listOf(listOf("15V"), listOf("10R")),
+                            modifier = Modifier.weight(1f), tileAsset = ::tileAsset,
+                            rotationDegrees = ::tileRotationDegrees, rotationLabel = ::rotationLabel,
+                            onTileClick = { enlargedTile = it }
+                        )
+                    }
+                } else if (sourceId == "digital" && missionId == "WM30") {
+                    // Two distinct 2x2 boards, each retaining its empty corner.
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                        DigitalTileRows(
+                            rows = listOf(listOf("7R", "8R"), listOf(null, "3V")),
+                            modifier = Modifier.weight(1f), tileAsset = ::tileAsset,
+                            rotationDegrees = ::tileRotationDegrees, rotationLabel = ::rotationLabel,
+                            onTileClick = { enlargedTile = it }
+                        )
+                        DigitalTileRows(
+                            rows = listOf(listOf(null, "6R"), listOf("1V", "2V")),
+                            modifier = Modifier.weight(1f), tileAsset = ::tileAsset,
+                            rotationDegrees = ::tileRotationDegrees, rotationLabel = ::rotationLabel,
+                            onTileClick = { enlargedTile = it }
+                        )
+                    }
+                } else if (sourceId == "digital" && missionId == "WM17") {
+                    DigitalTileRows(
+                        rows = listOf(listOf(null, "1R", null), listOf("3V", "8R", "3R")),
+                        modifier = Modifier.fillMaxWidth(), tileAsset = ::tileAsset,
+                        rotationDegrees = ::tileRotationDegrees, rotationLabel = ::rotationLabel,
+                        onTileClick = { enlargedTile = it }
+                    )
+                } else if (sourceId == "digital" && missionId == "WM18") {
+                    DigitalTileRows(
+                        rows = listOf(listOf(null, "9R"), listOf("5R", "2R"), listOf("3V", "4R")),
+                        modifier = Modifier.fillMaxWidth(), tileAsset = ::tileAsset,
+                        rotationDegrees = ::tileRotationDegrees, rotationLabel = ::rotationLabel,
+                        onTileClick = { enlargedTile = it }
+                    )
+                } else if (sourceId == "digital") {
+                    val digitalRows = when (missionId) {
+                        "WM11" -> listOf(listOf("3R", "2R"), listOf("6R", "5R"), listOf("4R", "7V"))
+                        "WM12" -> listOf(listOf("7V", "9V"), listOf("1V", "2V"), listOf("3V", "4V"))
+                        "WM13" -> listOf(listOf("7V", "3R", "6R", "5R"))
+                        "WM14" -> listOf(listOf("5V", "1V"), listOf("7V", "9R"))
+                        "WM15" -> listOf(listOf("3V", "8R"), listOf("5R", "2R"))
+                        "WM16" -> listOf(listOf("1V", "3V"), listOf("8V", "5V"), listOf("6V", "9V"))
+                        "WM19" -> listOf(listOf("8V", "4V"), listOf("2V", "5V"))
+                        "WM20" -> listOf(listOf("1R", "5R"), listOf("7V", "6V"))
+                        "WM21" -> listOf(listOf("8V", "9V"), listOf("4R", "3R"), listOf("2V", "1V"))
+                        "WM23" -> listOf(listOf("2V", "9V"), listOf("5R", "3V"), listOf("4R", "6V"))
+                        "WM24" -> listOf(listOf("8V", "3R", "7V"), listOf("1V", "6R", "4V"), listOf("5R", "9R", "2V"))
+                        "WM25" -> listOf(listOf("7R", "5R", "8R", "6R"))
+                        "WM26" -> listOf(listOf("3V", "1R"), listOf("4V", "7R"))
+                        "WM27" -> listOf(listOf("21R", "18V"), listOf("16R", "20R"), listOf("19V", "17V"))
+                        "WM29" -> listOf(listOf("3V", "2R"), listOf("5R", "9R"), listOf("1R", "4V"))
+                        "WM31" -> listOf(listOf("7V", "6V"), listOf("9V", "5V"))
+                        "WM32" -> listOf(listOf("1R", "9V", "3V"), listOf("2R", "7V", "4V"))
+                        "WM33" -> listOf(listOf("8V", "5V", "6V", "7V"))
+                        "WM34" -> listOf(listOf("5R", "8R", "7V"), listOf("2V", "1V", "6V"), listOf("4V", "3V", "9V"))
+                        "WM35" -> listOf(listOf("1V", "6V"), listOf("5R", "3V"))
+                        "WM36" -> listOf(listOf("7V", "9R"), listOf("1R", "6R"))
+                        "WM37" -> listOf(listOf("7V", "9R"), listOf("2R", "1R"), listOf("8R", "4R"))
+                        else -> rows.map { row -> row.map { it as String? } }
+                    }
+                    DigitalTileRows(
+                        rows = digitalRows, modifier = Modifier.fillMaxWidth(),
+                        tileAsset = ::tileAsset, rotationDegrees = ::tileRotationDegrees,
+                        rotationLabel = ::rotationLabel, onTileClick = { enlargedTile = it }
+                    )
+                } else if (sourceId == "washington" && missionId in listOf("M5", "M7")) {
                     val positions = if (missionId == "M5") mapOf(0 to "13V", 2 to "12R", 4 to "11R", 6 to "10R", 5 to "15R", 7 to "14R")
                         else mapOf(0 to "15V", 2 to "11R", 4 to "10R", 6 to "13V", 5 to "14V", 7 to "12R")
                     repeat(4) { rowIndex ->
