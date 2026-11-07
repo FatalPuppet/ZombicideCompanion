@@ -322,7 +322,7 @@ private fun HomeScreen(onStart: () -> Unit, onRules: () -> Unit, onVersionClick:
         }
         Spacer(Modifier.weight(1f))
         Text(
-            "Offline companion · v1.2.0.7",
+            "Offline companion · v1.2.0.9",
             style = MaterialTheme.typography.labelSmall,
             modifier = Modifier.clickable(onClick = onVersionClick),
             color = MaterialTheme.colorScheme.primary
@@ -579,7 +579,8 @@ private fun MissionOverviewScreen(missionId: String, sourceId: String, onBack: (
 private data class MissionComponent(
     val name: String,
     val quantity: String?,
-    val placement: String
+    val placement: String,
+    val drawableName: String? = null
 )
 
 private val m0Components = listOf(
@@ -738,7 +739,7 @@ private fun TileSetupScreen(
                 add(MissionComponent("Epic Weapon Crates", "4", "Place 4 Epic Weapon Crates."))
                 add(MissionComponent("Red Objective tokens", "4", "Place 4 Red Objective tokens."))
                 add(MissionComponent("Abomination miniature", "1", "Prepare 1 Abomination miniature."))
-                add(MissionComponent("Runner miniatures", "3", "Prepare 3 Runner miniatures."))
+                add(MissionComponent("Runner miniatures", "3", "Prepare 3 Runner miniatures.", drawableName = "runner"))
             }
             "WM16" -> {
                 add(MissionComponent("Starting Spawn Zone token", "1", "Prepare the Starting Spawn Zone token."))
@@ -787,8 +788,8 @@ private fun TileSetupScreen(
                 add(MissionComponent("Exit Zone token", "1", "Place at the Exit shown on the map."))
                 add(MissionComponent("Objective tokens", "4", "Use 4 Red Objectives and shuffle the Blue Objective among them."))
                 add(MissionComponent("Pimpweapon Crates", "4", "Place the 4 Pimpweapon Crates shown on the map."))
-                add(MissionComponent("Closed Door tokens", "4", "Place the closed doors shown on the map."))
-                add(MissionComponent("Companion miniature (Rod)", "1", "Use a random Companion to represent Rod."))
+                add(MissionComponent("Red Closed Door tokens", "4", "Prepare 4 Red Closed Door tokens."))
+                add(MissionComponent("Green Closed Door token", "1", "Prepare 1 Green Closed Door token."))
             }
             "WM21" -> {
                 add(MissionComponent("Survivor Starting Zones", "2", "Place a Survivor in each Starting Zone."))
@@ -796,8 +797,10 @@ private fun TileSetupScreen(
                 add(MissionComponent("Exit Zone token", "1", "Place at the Exit shown on the map."))
                 add(MissionComponent("Objective tokens", "4", "Use the Blue, Green, and Red Objectives as indicated."))
                 add(MissionComponent("Pimpweapon Crates", "6", "Place the 6 Pimpweapon Crates shown on the map."))
-                add(MissionComponent("Pimpmobile token", "1", "Place the Pimpmobile shown on the map."))
-                add(MissionComponent("Closed Door tokens", "As shown", "Place the Red, Blue, and Green doors as shown; the Red Door is blocked."))
+                add(MissionComponent("Muscle Car token", "1", "Place the Muscle Car shown on the map."))
+                add(MissionComponent("Green Closed Door token", "1", "Prepare 1 Green Closed Door token."))
+                add(MissionComponent("Blue Closed Door token", "1", "Prepare 1 Blue Closed Door token."))
+                add(MissionComponent("Red Closed Door token", "1", "Prepare 1 Red Closed Door token; it is blocked."))
                 add(MissionComponent("Companion miniatures", "2", "Place a Companion in each Starting Zone."))
             }
             "WM23" -> {
@@ -806,9 +809,9 @@ private fun TileSetupScreen(
                 add(MissionComponent("Objective tokens", "As shown", "Place the Blue Objective on tile 2V and the Green Objective on tile 3V, outside its Objective Zone."))
                 add(MissionComponent("Pimpweapon Crates", "6", "Place the Pimpweapon Crates shown on the map."))
                 add(MissionComponent("Police Car token", "1", "Place the Police Car shown on the map."))
-                add(MissionComponent("Pimpmobile token", "1", "Place the Pimpmobile shown on the map."))
-                add(MissionComponent("Agatha counters", "2", "Use two counters of any kind for Agatha’s counter pool."))
-                add(MissionComponent("Abominacop miniature", "1", "Set the Abominacop aside; it enters play through the special rules."))
+                add(MissionComponent("Muscle Car token", "1", "Place the Muscle Car shown on the map."))
+                add(MissionComponent("Agatha counters", "2", "Use two Noise tokens for Agatha’s counter pool.", drawableName = "noise"))
+                add(MissionComponent("Abominacop miniature", "1", "Set the Abominacop aside; it enters play through the special rules.", drawableName = "abomination"))
             }
             "WM24" -> {
                 add(MissionComponent("Survivor Starting Zone token", "1", "Place at the Starting Zone shown on the map."))
@@ -816,7 +819,7 @@ private fun TileSetupScreen(
                 add(MissionComponent("Exit Zone tokens", "7", "Use the Exit tokens shown on the map."))
                 add(MissionComponent("Objective tokens", "As shown", "Use Red Objectives as fuel and place Blue and Green Objectives on tiles 8V and 2V."))
                 add(MissionComponent("Pimpweapon Crates", "9", "Place the 9 Pimpweapon Crates shown on the map."))
-                add(MissionComponent("Pimpmobile token", "1", "Place the Pimpmobile shown on the map."))
+                add(MissionComponent("Muscle Car token", "1", "Place the Muscle Car shown on the map."))
                 add(MissionComponent("Open and closed Door tokens", "As shown", "Place the reinforced doors shown on the map."))
                 add(MissionComponent("Noise tokens", "4", "Place 4 Noise tokens on the Pimpmobile when a Survivor first interacts with it."))
             }
@@ -1032,7 +1035,7 @@ private fun TileSetupScreen(
                                 detail = component.placement,
                                 quantity = component.quantity,
                                 checked = itemId in preparedItems,
-                                drawableName = when {
+                                drawableName = component.drawableName ?: when {
                                     component.name.contains("Walker", ignoreCase = true) -> "walker"
                                     component.name.contains("Abomination", ignoreCase = true) -> "abomination"
                                     else -> null
@@ -1196,16 +1199,32 @@ private fun MapLayoutScreen(tiles: List<String>, missionId: String, sourceId: St
         }
         if (sourceId == "digital") {
             val digitalDirections = mapOf(
-                "WM1" to listOf("M", "L", "L", "RR"),
-                "WM2" to listOf("L", "R", "L", "L", "N", "R"),
-                "WM3" to listOf("L", "N", "RR", "N"),
-                "WM4" to listOf("N", "N", "RR", "L", "L", "L"),
-                "WM5" to listOf("RR", "RR", "N", "RR"),
-                "WM6" to listOf("R", "RR", "L", "R", "L", "L"),
-                "WM7" to listOf("R", "RR", "N", "RR", "R", "N"),
-                "WM8" to listOf("RR", "R", "R", "R", "L", "L"),
-                "WM9" to listOf("L", "N", "L", "R"),
-                "WM10" to listOf("N", "L", "LL", "N")
+                "WM11" to listOf("N", "L", "RR", "N", "L", "L"),
+                "WM12" to listOf("N", "N", "R", "LL", "L", "R"),
+                "WM13" to listOf("N", "N", "L", "L"),
+                "WM14" to listOf("RR", "RR", "R", "N"),
+                "WM15" to listOf("N", "RR", "R", "L"),
+                "WM16" to listOf("N", "RR", "N", "N", "LL", "L"),
+                "WM17" to listOf("LL", "L", "N", "N"),
+                "WM18" to listOf("L", "R", "L", "L", "L"),
+                "WM19" to listOf("R", "L", "L", "R"),
+                "WM20" to listOf("L", "R", "L", "R"),
+                "WM21" to listOf("R", "RR", "RR", "N", "N", "L"),
+                "WM23" to listOf("LL", "LL", "N", "RR", "R", "N"),
+                "WM24" to listOf("N", "R", "L", "R", "N", "N", "N", "L", "L"),
+                "WM25" to listOf("RR", "N", "RR", "RR"),
+                "WM26" to listOf("N", "L", "RR", "RR"),
+                "WM27" to listOf("L", "LL", "L", "N", "L", "R"),
+                "WM28" to listOf("L", "L", "R", "L", "L", "N"),
+                "WM29" to listOf("N", "RR", "R", "RR", "N", "R"),
+                "WM30" to listOf("R", "L", "RR", "N", "N", "L"),
+                "WM31" to listOf("L", "R", "L", "L"),
+                "WM32" to listOf("L", "N", "L", "RR", "RR", "L"),
+                "WM33" to listOf("LL", "L", "L", "R"),
+                "WM34" to listOf("RR", "N", "N", "R", "R", "LL", "N", "R", "N"),
+                "WM35" to listOf("LL", "L", "R", "RR"),
+                "WM36" to listOf("R", "N", "R", "RR"),
+                "WM37" to listOf("R", "L", "RR", "N", "R", "L")
             )
             val missionTiles = digitalMissionInfo.firstOrNull { it.id == missionId }?.tiles.orEmpty()
             val occurrenceIndex = missionTiles.indices.firstOrNull { index ->
@@ -1215,7 +1234,7 @@ private fun MapLayoutScreen(tiles: List<String>, missionId: String, sourceId: St
             val direction = digitalDirections[missionId]?.getOrNull(occurrenceIndex) ?: "N"
             return when (direction) {
                 "R" -> 90f
-                "RR" -> 180f
+                "RR", "LL" -> 180f
                 "L" -> 270f
                 "M" -> 0f
                 else -> 0f
@@ -1474,24 +1493,24 @@ private fun MapLayoutScreen(tiles: List<String>, missionId: String, sourceId: St
                         )
                     }
                 } else if (sourceId == "digital" && missionId == "WM30") {
-                    // Two distinct 2x2 boards, each retaining its empty corner.
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    // Two distinct 2x2 boards stacked vertically, preserving their empty corners.
+                    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                         DigitalTileRows(
                             rows = listOf(listOf("7R", "8R"), listOf(null, "3V")),
-                            modifier = Modifier.weight(1f), tileAsset = ::tileAsset,
+                            modifier = Modifier.fillMaxWidth(0.72f), tileAsset = ::tileAsset,
                             rotationDegrees = ::tileRotationDegrees, rotationLabel = ::rotationLabel,
                             onTileClick = { enlargedTile = it }
                         )
                         DigitalTileRows(
                             rows = listOf(listOf(null, "6R"), listOf("1V", "2V")),
-                            modifier = Modifier.weight(1f), tileAsset = ::tileAsset,
+                            modifier = Modifier.fillMaxWidth(0.72f), tileAsset = ::tileAsset,
                             rotationDegrees = ::tileRotationDegrees, rotationLabel = ::rotationLabel,
                             onTileClick = { enlargedTile = it }
                         )
                     }
                 } else if (sourceId == "digital" && missionId == "WM17") {
                     DigitalTileRows(
-                        rows = listOf(listOf(null, "1R", null), listOf("3V", "8R", "3R")),
+                        rows = listOf(listOf(null, "1R", null), listOf("3V", "8R", "4V")),
                         modifier = Modifier.fillMaxWidth(), tileAsset = ::tileAsset,
                         rotationDegrees = ::tileRotationDegrees, rotationLabel = ::rotationLabel,
                         onTileClick = { enlargedTile = it }
@@ -1522,8 +1541,8 @@ private fun MapLayoutScreen(tiles: List<String>, missionId: String, sourceId: St
                         "WM29" -> listOf(listOf("3V", "2R"), listOf("5R", "9R"), listOf("1R", "4V"))
                         "WM31" -> listOf(listOf("7V", "6V"), listOf("9V", "5V"))
                         "WM32" -> listOf(listOf("1R", "9V", "3V"), listOf("2R", "7V", "4V"))
-                        "WM33" -> listOf(listOf("8V", "5V", "6V", "7V"))
-                        "WM34" -> listOf(listOf("5R", "8R", "7V"), listOf("2V", "1V", "6V"), listOf("4V", "3V", "9V"))
+                        "WM33" -> listOf(listOf("7V", "6V", "6V", "8V"))
+                        "WM34" -> listOf(listOf("4V", "2V", "5R"), listOf("3V", "1V", "8R"), listOf("9V", "6V", "7V"))
                         "WM35" -> listOf(listOf("1V", "6V"), listOf("5R", "3V"))
                         "WM36" -> listOf(listOf("7V", "9R"), listOf("1R", "6R"))
                         "WM37" -> listOf(listOf("7V", "9R"), listOf("2R", "1R"), listOf("8R", "4R"))

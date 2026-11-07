@@ -11,8 +11,8 @@ android {
         applicationId = "com.fatalpuppet.zombicide"
         minSdk = 26
         targetSdk = 36
-        versionCode = 5
-        versionName = "0.5.0"
+        versionCode = 9
+        versionName = "1.2.0.9"
     }
 
     buildFeatures { compose = true }
