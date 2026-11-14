@@ -322,7 +322,7 @@ private fun HomeScreen(onStart: () -> Unit, onRules: () -> Unit, onVersionClick:
         }
         Spacer(Modifier.weight(1f))
         Text(
-            "Offline companion · v1.2.0.9",
+            "Offline companion · v1.2.0.7",
             style = MaterialTheme.typography.labelSmall,
             modifier = Modifier.clickable(onClick = onVersionClick),
             color = MaterialTheme.colorScheme.primary
@@ -579,8 +579,7 @@ private fun MissionOverviewScreen(missionId: String, sourceId: String, onBack: (
 private data class MissionComponent(
     val name: String,
     val quantity: String?,
-    val placement: String,
-    val drawableName: String? = null
+    val placement: String
 )
 
 private val m0Components = listOf(
@@ -739,7 +738,7 @@ private fun TileSetupScreen(
                 add(MissionComponent("Epic Weapon Crates", "4", "Place 4 Epic Weapon Crates."))
                 add(MissionComponent("Red Objective tokens", "4", "Place 4 Red Objective tokens."))
                 add(MissionComponent("Abomination miniature", "1", "Prepare 1 Abomination miniature."))
-                add(MissionComponent("Runner miniatures", "3", "Prepare 3 Runner miniatures.", drawableName = "runner"))
+                add(MissionComponent("Runner miniatures", "3", "Prepare 3 Runner miniatures."))
             }
             "WM16" -> {
                 add(MissionComponent("Starting Spawn Zone token", "1", "Prepare the Starting Spawn Zone token."))
@@ -788,71 +787,160 @@ private fun TileSetupScreen(
                 add(MissionComponent("Exit Zone token", "1", "Place at the Exit shown on the map."))
                 add(MissionComponent("Objective tokens", "4", "Use 4 Red Objectives and shuffle the Blue Objective among them."))
                 add(MissionComponent("Pimpweapon Crates", "4", "Place the 4 Pimpweapon Crates shown on the map."))
-                add(MissionComponent("Red Closed Door tokens", "4", "Prepare 4 Red Closed Door tokens."))
-                add(MissionComponent("Green Closed Door token", "1", "Prepare 1 Green Closed Door token."))
+                add(MissionComponent("Closed Door tokens", "4", "Place the closed doors shown on the map."))
+                add(MissionComponent("Companion miniature (Rod)", "1", "Use a random Companion to represent Rod."))
             }
             "WM21" -> {
-                add(MissionComponent("Starting Spawn Zone token", "1", "Prepare 1 Starting Spawn Zone token."))
-                add(MissionComponent("Red Spawn Zone token", "1", "Prepare 1 Red Spawn Zone token."))
-                add(MissionComponent("Green Spawn Zone token", "1", "Prepare 1 Green Spawn Zone token."))
+                add(MissionComponent("Survivor Starting Zones", "2", "Place a Survivor in each Starting Zone."))
+                add(MissionComponent("Spawn Zone tokens", "As shown", "Prepare the colored Spawn Zones shown on the map."))
                 add(MissionComponent("Exit Zone token", "1", "Place at the Exit shown on the map."))
                 add(MissionComponent("Objective tokens", "4", "Use the Blue, Green, and Red Objectives as indicated."))
                 add(MissionComponent("Pimpweapon Crates", "6", "Place the 6 Pimpweapon Crates shown on the map."))
-                add(MissionComponent("Muscle Car token", "1", "Place the Muscle Car shown on the map."))
-                add(MissionComponent("Green Closed Door token", "1", "Prepare 1 Green Closed Door token."))
-                add(MissionComponent("Blue Closed Door token", "1", "Prepare 1 Blue Closed Door token."))
-                add(MissionComponent("Red Closed Door token", "1", "Prepare 1 Red Closed Door token; it is blocked."))
+                add(MissionComponent("Pimpmobile token", "1", "Place the Pimpmobile shown on the map."))
+                add(MissionComponent("Closed Door tokens", "As shown", "Place the Red, Blue, and Green doors as shown; the Red Door is blocked."))
                 add(MissionComponent("Companion miniatures", "2", "Place a Companion in each Starting Zone."))
             }
             "WM23" -> {
-                add(MissionComponent("Starting Spawn Zone token", "1", "Place 1 Starting Spawn Zone token."))
-                add(MissionComponent("Red Spawn Zone tokens", "2", "Place 2 Red Spawn Zone tokens."))
-                add(MissionComponent("Blue Spawn Zone token", "1", "Place 1 Blue Spawn Zone token."))
-                add(MissionComponent("Red Objective tokens", "4", "Place 4 Red Objective tokens."))
-                add(MissionComponent("Blue Objective token", "1", "Place 1 Blue Objective token on tile 2V."))
-                add(MissionComponent("Green Objective token", "1", "Place 1 Green Objective token on tile 3V, outside its Objective Zone."))
-                add(MissionComponent("Red Closed Door tokens", "8", "Prepare 8 Red Closed Door tokens."))
+                add(MissionComponent("Survivor Starting Zone token", "1", "Place at the Starting Zone shown on the map."))
+                add(MissionComponent("Spawn Zone tokens", "As shown", "Prepare the colored Spawn Zones shown on the map."))
+                add(MissionComponent("Objective tokens", "As shown", "Place the Blue Objective on tile 2V and the Green Objective on tile 3V, outside its Objective Zone."))
                 add(MissionComponent("Pimpweapon Crates", "6", "Place the Pimpweapon Crates shown on the map."))
                 add(MissionComponent("Police Car token", "1", "Place the Police Car shown on the map."))
-                add(MissionComponent("Muscle Car token", "1", "Place the Muscle Car shown on the map."))
-                add(MissionComponent("Noise tokens (Agatha counters)", "2", "Use 2 Noise tokens for Agatha’s counter pool."))
-                add(MissionComponent("Abominacop miniature", "1", "Set the Abominacop aside; it enters play through the special rules.", drawableName = "abomination"))
+                add(MissionComponent("Pimpmobile token", "1", "Place the Pimpmobile shown on the map."))
+                add(MissionComponent("Agatha counters", "2", "Use two counters of any kind for Agatha’s counter pool."))
+                add(MissionComponent("Abominacop miniature", "1", "Set the Abominacop aside; it enters play through the special rules."))
             }
             "WM24" -> {
-                add(MissionComponent("Starting Spawn Zone token", "1", "Place 1 Starting Spawn Zone token."))
-                add(MissionComponent("Red Spawn Zone token", "1", "Place 1 Red Spawn Zone token."))
-                add(MissionComponent("Blue Spawn Zone token", "1", "Place 1 Blue Spawn Zone token."))
-                add(MissionComponent("Green Spawn Zone token", "1", "Place 1 Green Spawn Zone token."))
-                add(MissionComponent("Exit Zone tokens", "7", "Use the 7 Exit tokens shown on the map."))
-                add(MissionComponent("Red Objective tokens", "7", "Use 7 Red Objectives as fuel."))
-                add(MissionComponent("Blue Objective token", "1", "Place the Blue Objective on tile 8V."))
-                add(MissionComponent("Green Objective token", "1", "Place the Green Objective on tile 2V."))
+                add(MissionComponent("Survivor Starting Zone token", "1", "Place at the Starting Zone shown on the map."))
+                add(MissionComponent("Spawn Zone tokens", "As shown", "Prepare the colored Spawn Zones shown on the map."))
+                add(MissionComponent("Exit Zone tokens", "7", "Use the Exit tokens shown on the map."))
+                add(MissionComponent("Objective tokens", "As shown", "Use Red Objectives as fuel and place Blue and Green Objectives on tiles 8V and 2V."))
                 add(MissionComponent("Pimpweapon Crates", "9", "Place the 9 Pimpweapon Crates shown on the map."))
-                add(MissionComponent("Muscle Car token", "1", "Place the Muscle Car shown on the map."))
-                add(MissionComponent("Blue Closed Door token", "1", "Prepare 1 Blue Closed Door token."))
-                add(MissionComponent("Green Closed Door token", "1", "Prepare 1 Green Closed Door token."))
-                add(MissionComponent("Red Open Door token", "1", "Prepare 1 Red Open Door token."))
-                add(MissionComponent("Noise tokens", "4", "Place 4 Noise tokens on the Muscle Car when a Survivor first interacts with it."))
+                add(MissionComponent("Pimpmobile token", "1", "Place the Pimpmobile shown on the map."))
+                add(MissionComponent("Open and closed Door tokens", "As shown", "Place the reinforced doors shown on the map."))
+                add(MissionComponent("Noise tokens", "4", "Place 4 Noise tokens on the Pimpmobile when a Survivor first interacts with it."))
             }
             "WM25" -> {
-                add(MissionComponent("Starting Spawn Zone token", "1", "Place 1 Starting Spawn Zone token."))
-                add(MissionComponent("Red Spawn Zone tokens", "3", "Place 3 Red Spawn Zone tokens."))
-                add(MissionComponent("Blue Spawn Zone token", "1", "Place 1 Blue Spawn Zone token."))
+                add(MissionComponent("Survivor Starting Zone token", "1", "Place at the Starting Zone shown on the map."))
+                add(MissionComponent("Spawn Zone tokens", "3", "Prepare the 3 Spawn Zones shown on the map."))
                 add(MissionComponent("Exit Zone token", "1", "Place at tile 8R as shown on the map."))
-                add(MissionComponent("Red Objective tokens", "3", "Place 3 Red Objective tokens; do not place one on tile 8R."))
+                add(MissionComponent("Objective tokens", "3", "Place Red Objectives as shown; do not place one on tile 8R."))
                 add(MissionComponent("Pimpweapon Crates", "4", "Place the 4 Pimpweapon Crates shown on the map."))
-                add(MissionComponent("Red Closed Door tokens", "3", "Prepare 3 Red Closed Door tokens; they cannot be opened."))
-                add(MissionComponent("Blue Closed Door token", "1", "Prepare 1 Blue Closed Door token."))
-                add(MissionComponent("Green Closed Door token", "1", "Prepare 1 Green Closed Door token."))
+                add(MissionComponent("Closed Door tokens", "As shown", "The Red Doors cannot be opened; the Blue and Green subway doors are linked."))
             }
             "WM26" -> {
-                add(MissionComponent("Starting Spawn Zone token", "1", "Place 1 Starting Spawn Zone token."))
-                add(MissionComponent("Red Spawn Zone tokens", "3", "Place 3 Red Spawn Zone tokens."))
-                add(MissionComponent("Green Spawn Zone token", "1", "Place 1 Green Spawn Zone token."))
+                add(MissionComponent("Survivor Starting Zone token", "1", "Place at the Starting Zone shown on the map."))
+                add(MissionComponent("Spawn Zone tokens", "As shown", "Prepare the colored Spawn Zones shown on the map."))
                 add(MissionComponent("Exit Zone token", "1", "Place at the Exit shown on the map."))
-                add(MissionComponent("Red Objective tokens", "4", "Place the 4 Red Objective tokens shown on the map."))
+                add(MissionComponent("Red Objective tokens", "4", "Place the 4 Objectives shown on the map."))
                 add(MissionComponent("Pimpweapon Crates", "4", "Place the 4 Pimpweapon Crates shown on the map."))
-                add(MissionComponent("Red Closed Door token", "1", "Place 1 Red Closed Door token between tiles 1R and 7R."))
+                add(MissionComponent("Closed Door token", "1", "Place the door between tiles 1R and 7R."))
+            }
+            "WM27" -> {
+                add(MissionComponent("Starting Spawn Zone token", "1", "Prepare 1 Starting Spawn Zone token."))
+                add(MissionComponent("Red Spawn Zone tokens", "2", "Prepare 2 Red Spawn Zone tokens."))
+                add(MissionComponent("Red Objective tokens", "4", "Prepare 4 Red Objective tokens."))
+                add(MissionComponent("Blue Objective token", "1", "Prepare 1 Blue Objective token."))
+                add(MissionComponent("Green Objective token", "1", "Prepare 1 Green Objective token."))
+                add(MissionComponent("Epic Weapon Crates", "6", "Prepare 6 Epic Weapon Crates."))
+                add(MissionComponent("Walker miniatures", "3", "Prepare 3 Walkers."))
+                add(MissionComponent("Elite Soldier miniature (Penny)", "1", "Use the Penny miniature to represent the elite soldier."))
+                add(MissionComponent("Red Closed Door tokens", "2", "Prepare 2 Red Closed Door tokens."))
+            }
+            "WM28" -> {
+                add(MissionComponent("Starting Spawn Zone token", "1", "Prepare 1 Starting Spawn Zone token."))
+                add(MissionComponent("Red Spawn Zone tokens", "3", "Prepare 3 Red Spawn Zone tokens."))
+                add(MissionComponent("Secret Agent Companions", "2", "Use both Secret Agent Companion tokens: secret1.png and secret2.png."))
+                add(MissionComponent("Numbered Exit Zones", "4", "Prepare 4 Numbered Exit Zone markers using nexitz.png."))
+            }
+            "WM29" -> {
+                add(MissionComponent("Starting Spawn Zone token", "1", "Prepare 1 Starting Spawn Zone token."))
+                add(MissionComponent("Red Spawn Zone tokens", "3", "Prepare 3 Red Spawn Zone tokens."))
+                add(MissionComponent("Muscle Car token", "1", "Prepare 1 Muscle Car token."))
+                add(MissionComponent("Epic Weapon Crates", "6", "Prepare 6 Epic Weapon Crates."))
+                add(MissionComponent("Red Closed Door tokens", "4", "Prepare 4 Red Closed Door tokens."))
+                add(MissionComponent("Numbered Zones", "6", "Prepare 6 numbered Zone markers using nexitz.png."))
+            }
+            "WM30" -> {
+                add(MissionComponent("Starting Spawn Zone token", "1", "Prepare 1 Starting Spawn Zone token."))
+                add(MissionComponent("Red Spawn Zone tokens", "3", "Prepare 3 Red Spawn Zone tokens."))
+                add(MissionComponent("Blue Spawn Zone token", "1", "Prepare 1 Blue Spawn Zone token."))
+                add(MissionComponent("Green Spawn Zone token", "1", "Prepare 1 Green Spawn Zone token."))
+                add(MissionComponent("Epic Weapon Crates", "6", "Prepare 6 Epic Weapon Crates."))
+                add(MissionComponent("Red Objective tokens", "4", "Prepare 4 Red Objective tokens."))
+                add(MissionComponent("Blue Objective token", "1", "Prepare 1 Blue Objective token."))
+                add(MissionComponent("Green Objective token", "1", "Prepare 1 Green Objective token."))
+                add(MissionComponent("Red Closed Door token", "1", "Prepare 1 Red Closed Door token."))
+                add(MissionComponent("Blue Closed Door token", "1", "Prepare 1 Blue Closed Door token."))
+                add(MissionComponent("Green Closed Door token", "1", "Prepare 1 Green Closed Door token."))
+                add(MissionComponent("Walker miniatures", "8", "Prepare 8 Walkers."))
+                add(MissionComponent("Runner miniatures", "4", "Prepare 4 Runners."))
+            }
+            "WM31" -> {
+                add(MissionComponent("Starting Spawn Zone token", "1", "Prepare 1 Starting Spawn Zone token."))
+                add(MissionComponent("Red Spawn Zone token", "1", "Prepare 1 Red Spawn Zone token."))
+                add(MissionComponent("Blue Spawn Zone token", "1", "Prepare 1 Blue Spawn Zone token."))
+                add(MissionComponent("Green Spawn Zone token", "1", "Prepare 1 Green Spawn Zone token."))
+                add(MissionComponent("Epic Weapon Crates", "4", "Prepare 4 Epic Weapon Crates."))
+                add(MissionComponent("Exit Zone token", "1", "Prepare 1 Exit Zone token."))
+                add(MissionComponent("Numbered Zones", "4", "Prepare 4 numbered Zone markers using nexitz.png."))
+                add(MissionComponent("Red Closed Door tokens", "8", "Prepare 8 Red Closed Door tokens."))
+                add(MissionComponent("Blue Closed Door token", "1", "Prepare 1 Blue Closed Door token."))
+                add(MissionComponent("Green Closed Door token", "1", "Prepare 1 Green Closed Door token."))
+                add(MissionComponent("Red Objective tokens", "2", "Prepare 2 Red Objective tokens."))
+                add(MissionComponent("Blue Objective token", "1", "Prepare 1 Blue Objective token."))
+                add(MissionComponent("Green Objective token", "1", "Prepare 1 Green Objective token."))
+            }
+            "WM32" -> {
+                add(MissionComponent("Starting Spawn Zone token", "1", "Prepare 1 Starting Spawn Zone token."))
+                add(MissionComponent("Red Spawn Zone tokens", "5", "Prepare 5 Red Spawn Zone tokens."))
+                add(MissionComponent("Blue Spawn Zone token", "1", "Prepare 1 Blue Spawn Zone token."))
+                add(MissionComponent("Green Spawn Zone token", "1", "Prepare 1 Green Spawn Zone token."))
+                add(MissionComponent("Epic Weapon Crates", "6", "Prepare 6 Epic Weapon Crates."))
+                add(MissionComponent("Numbered Zones", "6", "Prepare 6 numbered Zone markers using nexitz.png."))
+                add(MissionComponent("Red Open Door tokens", "2", "Prepare 2 Red Open Door tokens."))
+                add(MissionComponent("Blue Open Door token", "1", "Prepare 1 Blue Open Door token."))
+                add(MissionComponent("Green Open Door token", "1", "Prepare 1 Green Open Door token."))
+                add(MissionComponent("Red Objective tokens", "4", "Prepare 4 Red Objective tokens."))
+                add(MissionComponent("Blue Objective token", "1", "Prepare 1 Blue Objective token."))
+                add(MissionComponent("Green Objective token", "1", "Prepare 1 Green Objective token."))
+                add(MissionComponent("Walker miniatures", "10", "Prepare 10 Walkers."))
+                add(MissionComponent("Runner miniatures", "2", "Prepare 2 Runners."))
+                add(MissionComponent("Brute miniatures", "3", "Prepare 3 Brutes."))
+            }
+            "WM33" -> {
+                add(MissionComponent("Starting Spawn Zone token", "1", "Prepare 1 Starting Spawn Zone token."))
+                add(MissionComponent("Red Spawn Zone token", "1", "Prepare 1 Red Spawn Zone token."))
+                add(MissionComponent("Blue Spawn Zone token", "1", "Prepare 1 Blue Spawn Zone token."))
+                add(MissionComponent("Exit Zone token", "1", "Prepare 1 Exit Zone token."))
+                add(MissionComponent("Red Closed Door tokens", "6", "Prepare 6 Red Closed Door tokens."))
+                add(MissionComponent("Green Closed Door token", "1", "Prepare 1 Green Closed Door token."))
+                add(MissionComponent("Red Objective tokens", "2", "Prepare 2 Red Objective tokens."))
+                add(MissionComponent("Green Objective token", "1", "Prepare 1 Green Objective token."))
+                add(MissionComponent("Blue Objective token", "1", "Prepare 1 Blue Objective token."))
+                add(MissionComponent("Muscle Car token", "1", "Prepare 1 Muscle Car token."))
+            }
+            "WM34" -> {
+                add(MissionComponent("Starting Spawn Zone token", "1", "Prepare 1 Starting Spawn Zone token."))
+                add(MissionComponent("Red Spawn Zone tokens", "2", "Prepare 2 Red Spawn Zone tokens."))
+                add(MissionComponent("Red Closed Door tokens", "5", "Prepare 5 Red Closed Door tokens."))
+                add(MissionComponent("Police Car token", "1", "Prepare 1 Police Car token."))
+                add(MissionComponent("Kids miniatures (Bunny G, Lou, Odin, Ostara)", "4", "Use Penny miniatures to represent Bunny G, Lou, Odin, and Ostara."))
+                add(MissionComponent("Epic Weapon Crates", "9", "Prepare 9 Epic Weapon Crates."))
+            }
+            "WM35" -> {
+                add(MissionComponent("Starting Spawn Zone token", "1", "Prepare 1 Starting Spawn Zone token."))
+                add(MissionComponent("Green Spawn Zone token", "1", "Prepare 1 Green Spawn Zone token."))
+                add(MissionComponent("Blue Spawn Zone token", "1", "Prepare 1 Blue Spawn Zone token."))
+                add(MissionComponent("Red Closed Door tokens", "2", "Prepare 2 Red Closed Door tokens."))
+                add(MissionComponent("Red Objective tokens", "2", "Prepare 2 Red Objective tokens."))
+                add(MissionComponent("Green Objective token", "1", "Prepare 1 Green Objective token."))
+                add(MissionComponent("Blue Objective token", "1", "Prepare 1 Blue Objective token."))
+                add(MissionComponent("Runner miniature", "1", "Prepare 1 Runner."))
+                add(MissionComponent("Brute miniature", "1", "Prepare 1 Brute."))
+                add(MissionComponent("Walker miniature", "1", "Prepare 1 Walker."))
+                add(MissionComponent("Epic Weapon Crates", "4", "Prepare 4 Epic Weapon Crates."))
+                add(MissionComponent("Exit Zone token", "1", "Prepare 1 Exit Zone token."))
             }
             "WM9" -> {
                 add(MissionComponent("Starting Spawn Zone token", "1", "Prepare the Survivor Starting Zone token shown on the mission map."))
@@ -1050,11 +1138,12 @@ private fun TileSetupScreen(
                                 detail = component.placement,
                                 quantity = component.quantity,
                                 checked = itemId in preparedItems,
-                                drawableName = component.drawableName ?: when {
-                                    component.name.contains("Runner", ignoreCase = true) -> "runner"
+                                specialTokenAssets = if (component.name == "Secret Agent Companions") listOf("tokens/secret1.png", "tokens/secret2.png") else null,
+                                drawableName = when {
                                     component.name.contains("Walker", ignoreCase = true) -> "walker"
-                                    component.name.contains("Abomination", ignoreCase = true) -> "abomination"
-                                    component.name.contains("Companion", ignoreCase = true) && missionId == "WM21" -> "penny"
+                                    component.name.contains("Runner", ignoreCase = true) -> "runner"
+                                    component.name.contains("Brute", ignoreCase = true) -> "brute"
+                                    component.name.contains("Penny", ignoreCase = true) || component.name.contains("Kids miniatures", ignoreCase = true) -> "penny"
                                     else -> null
                                 },
                                 onCheckedChange = { onTogglePrepared(itemId) }
@@ -1094,58 +1183,11 @@ private fun TileSetupScreen(
 }
 
 @Composable
-private fun DigitalTileRows(
-    rows: List<List<String?>>,
-    modifier: Modifier = Modifier,
-    tileAsset: (String) -> String,
-    rotationDegrees: (String) -> Float,
-    rotationLabel: (Float) -> String,
-    onTileClick: (String) -> Unit
-) {
-    Column(modifier, verticalArrangement = Arrangement.spacedBy(0.dp)) {
-        rows.forEach { rowTiles ->
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(0.dp)) {
-                rowTiles.forEach { tile ->
-                    if (tile == null) {
-                        Spacer(Modifier.weight(1f).aspectRatio(1f))
-                    } else {
-                        Card(
-                            modifier = Modifier.weight(1f).aspectRatio(1f)
-                                .border(0.5.dp, MaterialTheme.colorScheme.outline)
-                                .clickable { onTileClick(tile) },
-                            shape = RectangleShape,
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-                        ) {
-                            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                AssetImage(
-                                    path = tileAsset(tile),
-                                    contentDescription = "Tile $tile",
-                                    contentScale = ContentScale.Fit,
-                                    modifier = Modifier.fillMaxSize().graphicsLayer { rotationZ = rotationDegrees(tile) }
-                                )
-                                Text(
-                                    rotationLabel(rotationDegrees(tile)),
-                                    modifier = Modifier.align(Alignment.TopCenter).padding(top = 2.dp),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = Color.White
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
 private fun MapLayoutScreen(tiles: List<String>, missionId: String, sourceId: String, onBack: () -> Unit, onContinue: () -> Unit) {
     val tileCount = tiles.size
     val columns = when {
-        sourceId == "digital" && missionId in listOf("WM13", "WM25", "WM33") -> 4
-        sourceId == "digital" && missionId in listOf("WM24", "WM34") -> 3
-        sourceId == "digital" && missionId in listOf("WM11", "WM12", "WM16", "WM21", "WM23", "WM27", "WM29", "WM32", "WM37") -> 2
-        sourceId == "digital" && missionId in listOf("WM1", "WM2", "WM3", "WM4", "WM5", "WM6", "WM7", "WM8", "WM9", "WM10", "WM14", "WM15", "WM17", "WM18", "WM19", "WM20", "WM26", "WM28", "WM30", "WM31", "WM35", "WM36") -> 2
+        sourceId == "digital" && missionId == "WM6" -> 3
+        sourceId == "digital" && missionId in listOf("WM1", "WM2", "WM3", "WM4", "WM5", "WM7", "WM8", "WM9", "WM10") -> 2
         sourceId == "fort" && missionId in listOf("M2", "M3", "M6", "M9", "M10") -> 2
         sourceId == "fort" -> 3
         sourceId == "washington" && missionId in listOf("M2", "M3", "M6", "M10") -> 2
@@ -1216,32 +1258,18 @@ private fun MapLayoutScreen(tiles: List<String>, missionId: String, sourceId: St
         }
         if (sourceId == "digital") {
             val digitalDirections = mapOf(
-                "WM11" to listOf("N", "L", "RR", "N", "L", "L"),
-                "WM12" to listOf("N", "N", "R", "LL", "L", "R"),
-                "WM13" to listOf("N", "N", "L", "L"),
-                "WM14" to listOf("RR", "RR", "R", "N"),
-                "WM15" to listOf("N", "RR", "R", "L"),
-                "WM16" to listOf("N", "RR", "N", "N", "LL", "L"),
-                "WM17" to listOf("LL", "L", "N", "N"),
-                "WM18" to listOf("L", "R", "L", "L", "L"),
-                "WM19" to listOf("R", "L", "L", "R"),
-                "WM20" to listOf("L", "R", "L", "R"),
-                "WM21" to listOf("R", "RR", "RR", "N", "N", "L"),
-                "WM23" to listOf("LL", "LL", "N", "RR", "R", "N"),
-                "WM24" to listOf("N", "R", "L", "R", "N", "N", "N", "L", "L"),
-                "WM25" to listOf("RR", "N", "RR", "RR"),
-                "WM26" to listOf("N", "L", "RR", "RR"),
-                "WM27" to listOf("L", "LL", "L", "N", "L", "R"),
-                "WM28" to listOf("L", "L", "R", "L", "L", "N"),
-                "WM29" to listOf("N", "RR", "R", "RR", "N", "R"),
-                "WM30" to listOf("R", "L", "RR", "N", "N", "L"),
-                "WM31" to listOf("L", "R", "L", "L"),
-                "WM32" to listOf("L", "N", "L", "RR", "RR", "L"),
-                "WM33" to listOf("LL", "L", "L", "R"),
-                "WM34" to listOf("L", "N", "N", "R", "R", "LL", "N", "R", "N"),
-                "WM35" to listOf("LL", "L", "R", "RR"),
-                "WM36" to listOf("R", "N", "R", "RR"),
-                "WM37" to listOf("R", "L", "RR", "N", "R", "L")
+                "WM1" to listOf("M", "L", "L", "RR"),
+                "WM2" to listOf("L", "R", "L", "L", "N", "R"),
+                "WM3" to listOf("L", "N", "RR", "N"),
+                "WM4" to listOf("N", "N", "RR", "L", "L", "L"),
+                "WM5" to listOf("RR", "RR", "N", "RR"),
+                "WM6" to listOf("R", "RR", "L", "R", "L", "L"),
+                "WM7" to listOf("R", "RR", "N", "RR", "R", "N"),
+                "WM8" to listOf("RR", "R", "R", "R", "L", "L"),
+                "WM9" to listOf("L", "N", "L", "R"),
+                "WM10" to listOf("N", "L", "LL", "N"),
+                "WM33" to listOf("R", "N", "N", "L"),
+                "WM34" to listOf("N", "N", "N", "LL", "N", "N", "N", "N", "N")
             )
             val missionTiles = digitalMissionInfo.firstOrNull { it.id == missionId }?.tiles.orEmpty()
             val occurrenceIndex = missionTiles.indices.firstOrNull { index ->
@@ -1251,7 +1279,7 @@ private fun MapLayoutScreen(tiles: List<String>, missionId: String, sourceId: St
             val direction = digitalDirections[missionId]?.getOrNull(occurrenceIndex) ?: "N"
             return when (direction) {
                 "R" -> 90f
-                "RR", "LL" -> 180f
+                "RR" -> 180f
                 "L" -> 270f
                 "M" -> 0f
                 else -> 0f
@@ -1493,84 +1521,7 @@ private fun MapLayoutScreen(tiles: List<String>, missionId: String, sourceId: St
                 modifier = Modifier.fillMaxWidth().weight(1f),
                 verticalArrangement = Arrangement.spacedBy(0.dp)
             ) {
-                if (sourceId == "digital" && missionId == "WM28") {
-                    // Two separate boards: a 2x2 group on the left and a vertical 1x2 group on the right.
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                        DigitalTileRows(
-                            rows = listOf(listOf("13V", "12R"), listOf("14V", "11R")),
-                            modifier = Modifier.weight(2f), tileAsset = ::tileAsset,
-                            rotationDegrees = ::tileRotationDegrees, rotationLabel = ::rotationLabel,
-                            onTileClick = { enlargedTile = it }
-                        )
-                        DigitalTileRows(
-                            rows = listOf(listOf("15V"), listOf("10R")),
-                            modifier = Modifier.weight(1f), tileAsset = ::tileAsset,
-                            rotationDegrees = ::tileRotationDegrees, rotationLabel = ::rotationLabel,
-                            onTileClick = { enlargedTile = it }
-                        )
-                    }
-                } else if (sourceId == "digital" && missionId == "WM30") {
-                    // Two distinct 2x2 boards stacked vertically, preserving their empty corners.
-                    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                        DigitalTileRows(
-                            rows = listOf(listOf("7R", "8R"), listOf(null, "3V")),
-                            modifier = Modifier.fillMaxWidth(0.72f), tileAsset = ::tileAsset,
-                            rotationDegrees = ::tileRotationDegrees, rotationLabel = ::rotationLabel,
-                            onTileClick = { enlargedTile = it }
-                        )
-                        DigitalTileRows(
-                            rows = listOf(listOf(null, "6R"), listOf("1V", "2V")),
-                            modifier = Modifier.fillMaxWidth(0.72f), tileAsset = ::tileAsset,
-                            rotationDegrees = ::tileRotationDegrees, rotationLabel = ::rotationLabel,
-                            onTileClick = { enlargedTile = it }
-                        )
-                    }
-                } else if (sourceId == "digital" && missionId == "WM17") {
-                    DigitalTileRows(
-                        rows = listOf(listOf(null, "1R", null), listOf("3V", "8R", "4V")),
-                        modifier = Modifier.fillMaxWidth(), tileAsset = ::tileAsset,
-                        rotationDegrees = ::tileRotationDegrees, rotationLabel = ::rotationLabel,
-                        onTileClick = { enlargedTile = it }
-                    )
-                } else if (sourceId == "digital" && missionId == "WM18") {
-                    DigitalTileRows(
-                        rows = listOf(listOf("9R", null), listOf("5R", "2R"), listOf("3V", "4R")),
-                        modifier = Modifier.fillMaxWidth(0.72f).align(Alignment.CenterHorizontally), tileAsset = ::tileAsset,
-                        rotationDegrees = ::tileRotationDegrees, rotationLabel = ::rotationLabel,
-                        onTileClick = { enlargedTile = it }
-                    )
-                } else if (sourceId == "digital") {
-                    val digitalRows = when (missionId) {
-                        "WM11" -> listOf(listOf("3R", "2R"), listOf("6R", "5R"), listOf("4R", "7V"))
-                        "WM12" -> listOf(listOf("7V", "9V"), listOf("1V", "2V"), listOf("3V", "4V"))
-                        "WM13" -> listOf(listOf("7V", "3R", "6R", "5R"))
-                        "WM14" -> listOf(listOf("5V", "1V"), listOf("7V", "9R"))
-                        "WM15" -> listOf(listOf("3V", "8R"), listOf("5R", "2R"))
-                        "WM16" -> listOf(listOf("1V", "3V"), listOf("8V", "5V"), listOf("6V", "9V"))
-                        "WM19" -> listOf(listOf("8V", "4V"), listOf("2V", "5V"))
-                        "WM20" -> listOf(listOf("1R", "5R"), listOf("7V", "6V"))
-                        "WM21" -> listOf(listOf("8V", "9V"), listOf("4R", "3R"), listOf("2V", "1V"))
-                        "WM23" -> listOf(listOf("2V", "9V"), listOf("5R", "3V"), listOf("4R", "6V"))
-                        "WM24" -> listOf(listOf("8V", "3R", "7V"), listOf("1V", "6R", "4V"), listOf("5R", "9R", "2V"))
-                        "WM25" -> listOf(listOf("7R", "5R", "8R", "6R"))
-                        "WM26" -> listOf(listOf("3V", "1R"), listOf("4V", "7R"))
-                        "WM27" -> listOf(listOf("21R", "18V"), listOf("16R", "20R"), listOf("19V", "17V"))
-                        "WM29" -> listOf(listOf("3V", "2R"), listOf("5R", "9R"), listOf("1R", "4V"))
-                        "WM31" -> listOf(listOf("7V", "6V"), listOf("9V", "5V"))
-                        "WM32" -> listOf(listOf("1R", "9V", "3V"), listOf("2R", "7V", "4V"))
-                        "WM33" -> listOf(listOf("8V", "5V", "6V", "7V"))
-                        "WM34" -> listOf(listOf("4V", "2V", "5R"), listOf("3V", "1V", "8R"), listOf("9V", "6V", "7V"))
-                        "WM35" -> listOf(listOf("1V", "6V"), listOf("5R", "3V"))
-                        "WM36" -> listOf(listOf("7V", "9R"), listOf("1R", "6R"))
-                        "WM37" -> listOf(listOf("7V", "9R"), listOf("2R", "1R"), listOf("8R", "4R"))
-                        else -> rows.map { row -> row.map { it as String? } }
-                    }
-                    DigitalTileRows(
-                        rows = digitalRows, modifier = Modifier.fillMaxWidth(),
-                        tileAsset = ::tileAsset, rotationDegrees = ::tileRotationDegrees,
-                        rotationLabel = ::rotationLabel, onTileClick = { enlargedTile = it }
-                    )
-                } else if (sourceId == "washington" && missionId in listOf("M5", "M7")) {
+                if (sourceId == "washington" && missionId in listOf("M5", "M7")) {
                     val positions = if (missionId == "M5") mapOf(0 to "13V", 2 to "12R", 4 to "11R", 6 to "10R", 5 to "15R", 7 to "14R")
                         else mapOf(0 to "15V", 2 to "11R", 4 to "10R", 6 to "13V", 5 to "14V", 7 to "12R")
                     repeat(4) { rowIndex ->
@@ -2036,7 +1987,8 @@ private fun ChecklistRow(
     checked: Boolean,
     onCheckedChange: () -> Unit,
     prominent: Boolean = false,
-    drawableName: String? = null
+    drawableName: String? = null,
+    specialTokenAssets: List<String>? = null
 ) {
     val tokenAsset = remember(label) {
         val key = label.lowercase().replace(Regex("[^a-z0-9]+"), "_").trim('_')
@@ -2066,6 +2018,8 @@ private fun ChecklistRow(
             label.contains("Police Car", ignoreCase = true) -> listOf("police_car")
             label.contains("Muscle Car", ignoreCase = true) -> listOf("muscle_car")
             label.contains("Broken Door", ignoreCase = true) -> listOf("door_red", "door_blue", "door_green")
+            label.contains("Secret Agent Companions", ignoreCase = true) -> listOf("secret1", "secret2")
+            label.contains("Numbered", ignoreCase = true) -> listOf("nexitz")
             label.contains("Noise", ignoreCase = true) -> listOf("noise")
             label.contains("Crashed Car", ignoreCase = true) -> listOf("muscle_car", "police_car")
             label.contains("Humvee", ignoreCase = true) -> listOf("humvee_car")
@@ -2087,7 +2041,13 @@ private fun ChecklistRow(
     ) {
         if (true) {
             Box(modifier = Modifier.width(60.dp).height(60.dp).padding(end = 4.dp), contentAlignment = Alignment.Center) {
-                if (drawableName != null) {
+                if (specialTokenAssets != null) {
+                    Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(2.dp), verticalAlignment = Alignment.CenterVertically) {
+                        specialTokenAssets.forEach { assetPath ->
+                            AssetImage(path = assetPath, contentDescription = "$label image", contentScale = ContentScale.Fit, modifier = Modifier.weight(1f).fillMaxSize())
+                        }
+                    }
+                } else if (drawableName != null) {
                     DrawableImage(
                         name = drawableName,
                         contentDescription = "$label miniature",

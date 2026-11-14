@@ -9,10 +9,11 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="4bbbb7e0-18b2-4192-b875-85a3393eb5af" name="Changes" comment="Updated maps for all missions until 37 with minor correction in progress">
+    <list default="true" id="4bbbb7e0-18b2-4192-b875-85a3393eb5af" name="Changes" comment="Tokens registered until mission 34 and additional tokens included">
+      <change afterPath="$PROJECT_DIR$/app/src/main/assets/tokens/nexitz.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/src/main/assets/tokens/secret1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/src/main/assets/tokens/secret2.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gradle/buildOutputCleanup/outputFiles.bin" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/buildOutputCleanup/outputFiles.bin" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/java/com/fatalpuppet/zombicide/MainActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/fatalpuppet/zombicide/MainActivity.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/java/com/fatalpuppet/zombicide/data/missions/DigitalMissions.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/fatalpuppet/zombicide/data/missions/DigitalMissions.kt" afterDir="false" />
@@ -465,6 +466,17 @@
     </task>
     <servers />
   </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Core rules and Missions registered" />
     <MESSAGE value="Core rules, mission, maps completed; Washington ZC implementation started" />
@@ -482,7 +494,8 @@
     <MESSAGE value="Registered maps until 37 with the required tiles" />
     <MESSAGE value="All maps for digital mission uploaded" />
     <MESSAGE value="Updated maps for all missions until 37 with minor correction in progress" />
-    <option name="LAST_COMMIT_MESSAGE" value="Updated maps for all missions until 37 with minor correction in progress" />
+    <MESSAGE value="Tokens registered until mission 34 and additional tokens included" />
+    <option name="LAST_COMMIT_MESSAGE" value="Tokens registered until mission 34 and additional tokens included" />
   </component>
   <component name="play_dynamic_filters_status">
     <option name="appIdToCheckInfo">
